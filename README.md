@@ -49,7 +49,6 @@ PostgreSQL Database (live data)
 Dashboard Pages (query & display)
 ```
 
-**Your database contains ONLY LIVE data from the API** - no sample data, only real cricket matches and teams!
 
 ## �🚀 Installation & Setup
 
@@ -219,81 +218,4 @@ The application will open at `http://localhost:8501`
 - **Data Processing**: Pandas, NumPy
 - **Visualization**: Plotly
 
-## 📊 Performance Optimization Tips
 
-1. **Indexing**: Create indexes on frequently queried columns:
-   ```sql
-   CREATE INDEX idx_player_country ON players(country);
-   CREATE INDEX idx_match_date ON matches(match_date);
-   ```
-
-2. **Query Optimization**: Use efficient JOINs and avoid N+1 queries
-
-3. **Caching**: Implement Streamlit's `@st.cache_data` for API calls
-
-4. **Connection Pooling**: Use connection pooling for database queries
-
-## 🔒 Security Recommendations
-
-1. **Credentials**: Store database credentials and API keys in `.env` file
-2. **SQL Injection**: Use parameterized queries (already implemented)
-3. **API Keys**: Never commit API keys to version control
-4. **Database**: Use strong passwords and restrict access by IP
-5. **Error Messages**: Don't expose sensitive info in error messages
-
-## 🐛 Troubleshooting
-
-### Database Connection Error
-- Verify PostgreSQL is running
-- Check credentials in `db_connection.py`
-- Ensure database exists
-
-### API Connection Error
-- Verify API key is correct
-- Check internet connection
-- Verify RapidAPI subscription is active
-
-### Missing Tables
-- Run `python utils/init_database.py`
-- Check database connection
-
-## 📚 Learning Resources
-
-- [Streamlit Documentation](https://docs.streamlit.io)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [Python Requests Library](https://requests.readthedocs.io/)
-- [Pandas Documentation](https://pandas.pydata.org/docs/)
-
-## 📝 Coding Standards
-
-- Follow PEP 8 Python style guidelines
-- Add docstrings to all functions
-- Implement proper error handling
-- Use type hints where applicable
-- Keep functions focused and modular
-
-## 🤝 Contributing
-
-Feel free to extend this project with:
-- Additional API endpoints
-- More SQL queries
-- Enhanced visualizations
-- Prediction models
-- Performance optimizations
-
-## 📄 License
-
-This project is open source and available for educational purposes.
-
-## 👨‍💻 Author
-
-Cricket Analytics Dashboard - Open Source Project
-
-## 📧 Support
-
-For issues and questions, refer to the documentation or create an issue in the repository.
-
----
-
-**Last Updated**: March 2026  
-**Version**: 1.0.0
