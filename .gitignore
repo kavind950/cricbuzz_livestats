@@ -79,13 +79,3 @@ Thumbs.db
 .pytest_cache/
 htmlcov/
 .coverage
-
-# Learning & Documentation (Local files)
-START_HERE.md
-BEGINNER_LEARNING_GUIDE.md
-INTERVIEW_MASTERCLASS.md
-CONCEPTS_DEEP_DIVE.md
-PRESENTATION_CHECKLIST.md
-COMPLETE_LEARNING_PATH.md
-LEARNING_NOTES.md
-STUDY_*.md
