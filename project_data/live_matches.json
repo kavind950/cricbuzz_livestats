@@ -1,0 +1,249 @@
+{
+  "typeMatches": [
+    {
+      "matchType": "Domestic",
+      "seriesMatches": [
+        {
+          "seriesAdWrapper": {
+            "seriesId": 10311,
+            "seriesName": "Duleep Trophy 2025",
+            "matches": [
+              {
+                "matchInfo": {
+                  "matchId": 123677,
+                  "seriesId": 10311,
+                  "seriesName": "Duleep Trophy 2025",
+                  "matchDesc": "2nd Semi-Final",
+                  "matchFormat": "TEST",
+                  "startDate": "1756958400000",
+                  "endDate": "1757242800000",
+                  "state": "In Progress",
+                  "status": "Day 1: 2nd Session",
+                  "team1": {
+                    "teamId": 234,
+                    "teamName": "West Zone",
+                    "teamSName": "WZONE",
+                    "imageId": 172287
+                  },
+                  "team2": {
+                    "teamId": 237,
+                    "teamName": "Central Zone",
+                    "teamSName": "CZONE",
+                    "imageId": 172290
+                  },
+                  "venueInfo": {
+                    "id": 1438102,
+                    "ground": "BCCI Centre of Excellence Ground B",
+                    "city": "Bengaluru",
+                    "timezone": "+05:30",
+                    "latitude": "13.174092",
+                    "longitude": "77.706999"
+                  },
+                  "currBatTeamId": 234,
+                  "seriesStartDt": "1756252800000",
+                  "seriesEndDt": "1757980800000",
+                  "isTimeAnnounced": true,
+                  "stateTitle": "In Progress"
+                },
+                "matchScore": {
+                  "team1Score": {
+                    "inngs1": {
+                      "inningsId": 1,
+                      "runs": 145,
+                      "wickets": 4,
+                      "overs": 36.6
+                    }
+                  }
+                }
+              },
+              {
+                "matchInfo": {
+                  "matchId": 123672,
+                  "seriesId": 10311,
+                  "seriesName": "Duleep Trophy 2025",
+                  "matchDesc": "1st Semi-Final",
+                  "matchFormat": "TEST",
+                  "startDate": "1756958400000",
+                  "endDate": "1757242800000",
+                  "state": "In Progress",
+                  "status": "Day 1: 2nd Session",
+                  "team1": {
+                    "teamId": 236,
+                    "teamName": "South Zone",
+                    "teamSName": "SZONE",
+                    "imageId": 172289
+                  },
+                  "team2": {
+                    "teamId": 233,
+                    "teamName": "North Zone",
+                    "teamSName": "NZONE",
+                    "imageId": 172286
+                  },
+                  "venueInfo": {
+                    "id": 1438087,
+                    "ground": "BCCI Centre of Excellence Ground",
+                    "city": "Bengaluru",
+                    "timezone": "+05:30",
+                    "latitude": "12.978853",
+                    "longitude": "77.599533"
+                  },
+                  "currBatTeamId": 236,
+                  "seriesStartDt": "1756252800000",
+                  "seriesEndDt": "1757980800000",
+                  "isTimeAnnounced": true,
+                  "stateTitle": "In Progress"
+                },
+                "matchScore": {
+                  "team1Score": {
+                    "inngs1": {
+                      "inningsId": 1,
+                      "runs": 101,
+                      "overs": 29.6
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "matchType": "Women",
+      "seriesMatches": [
+        {
+          "seriesAdWrapper": {
+            "seriesId": 10697,
+            "seriesName": "ICC Womens T20 World Cup Africa Region Division One Qualifier 2025",
+            "matches": [
+              {
+                "matchInfo": {
+                  "matchId": 131625,
+                  "seriesId": 10697,
+                  "seriesName": "ICC Womens T20 World Cup Africa Region Division One Qualifier 2025",
+                  "matchDesc": "12th Match, Group A",
+                  "matchFormat": "T20",
+                  "startDate": "1756900200000",
+                  "endDate": "1756912800000",
+                  "state": "Complete",
+                  "status": "Zimbabwe Women won by 10 wkts",
+                  "team1": {
+                    "teamId": 1482,
+                    "teamName": "Nigeria Women",
+                    "teamSName": "NGAW",
+                    "imageId": 273957
+                  },
+                  "team2": {
+                    "teamId": 388,
+                    "teamName": "Zimbabwe Women",
+                    "teamSName": "ZIMW",
+                    "imageId": 172441
+                  },
+                  "venueInfo": {
+                    "id": 1438052,
+                    "ground": "High Performance Oval",
+                    "city": "Windhoek",
+                    "timezone": "+02:00",
+                    "latitude": "-22.5859618",
+                    "longitude": "17.0436255"
+                  },
+                  "currBatTeamId": 388,
+                  "seriesStartDt": "1756512000000",
+                  "seriesEndDt": "1757203200000",
+                  "isTimeAnnounced": true,
+                  "stateTitle": "Complete"
+                },
+                "matchScore": {
+                  "team1Score": {
+                    "inngs1": {
+                      "inningsId": 1,
+                      "runs": 90,
+                      "wickets": 10,
+                      "overs": 19.5
+                    }
+                  },
+                  "team2Score": {
+                    "inngs1": {
+                      "inningsId": 2,
+                      "runs": 93,
+                      "overs": 14.2
+                    }
+                  }
+                }
+              },
+              {
+                "matchInfo": {
+                  "matchId": 131614,
+                  "seriesId": 10697,
+                  "seriesName": "ICC Womens T20 World Cup Africa Region Division One Qualifier 2025",
+                  "matchDesc": "11th Match, Group B",
+                  "matchFormat": "T20",
+                  "startDate": "1756900200000",
+                  "endDate": "1756912800000",
+                  "state": "Complete",
+                  "status": "Uganda Women won by 8 wkts",
+                  "team1": {
+                    "teamId": 501,
+                    "teamName": "Kenya Women",
+                    "teamSName": "KENW",
+                    "imageId": 172550
+                  },
+                  "team2": {
+                    "teamId": 448,
+                    "teamName": "Uganda Women",
+                    "teamSName": "UGAW",
+                    "imageId": 172496
+                  },
+                  "venueInfo": {
+                    "id": 1438021,
+                    "ground": "Namibia Cricket Ground",
+                    "city": " Windhoek",
+                    "timezone": "+02:00",
+                    "latitude": "-22.5872377",
+                    "longitude": "17.0677249"
+                  },
+                  "currBatTeamId": 448,
+                  "seriesStartDt": "1756512000000",
+                  "seriesEndDt": "1757203200000",
+                  "isTimeAnnounced": true,
+                  "stateTitle": "Complete"
+                },
+                "matchScore": {
+                  "team1Score": {
+                    "inngs1": {
+                      "inningsId": 1,
+                      "runs": 107,
+                      "wickets": 8,
+                      "overs": 19.6
+                    }
+                  },
+                  "team2Score": {
+                    "inngs1": {
+                      "inningsId": 2,
+                      "runs": 108,
+                      "wickets": 2,
+                      "overs": 18.4
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "filters": {
+    "matchType": [
+      "International",
+      "League",
+      "Domestic",
+      "Women"
+    ]
+  },
+  "appIndex": {
+    "seoTitle": "Live Cricket Score - Scorecard and Match Results",
+    "webURL": "www.cricbuzz.com/live-cricket-scores/"
+  },
+  "responseLastUpdated": "1756972020"
+}

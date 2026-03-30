@@ -1,0 +1,68 @@
+match_id,description,match_type,status,start_time,team1,team2,venue
+105786,1st ODI,ODI,RSA Won,2025-09-02 12:00:00,England,South Africa,Headingley
+105794,3rd ODI,ODI,ENG Won,2025-09-07 10:00:00,England,South Africa,The Rose Bowl
+105788,2nd ODI,ODI,RSA Won,2025-09-04 12:00:00,South Africa,England,Lord's
+131086,6th Match,T20,AFG Won,2025-09-05 15:00:00,Afghanistan,United Arab Emirates,Sharjah Cricket Stadium
+131092,Final,T20,PAK Won,2025-09-07 15:00:00,Pakistan,Afghanistan,Sharjah Cricket Stadium
+131070,4th Match,T20,AFG Won,2025-09-02 15:00:00,Afghanistan,Pakistan,Sharjah Cricket Stadium
+131075,5th Match,T20,PAK Won,2025-09-04 15:00:00,Pakistan,United Arab Emirates,Sharjah Cricket Stadium
+128919,85th Match,ODI,Abandon,2025-09-06 14:30:00,Canada,Scotland,Maple Leaf North-West Ground
+128908,84th Match,ODI,SCO Won,2025-09-04 14:30:00,Scotland,Namibia,Maple Leaf North-West Ground
+128902,83rd Match,ODI,NAM Won,2025-09-02 14:30:00,Namibia,Canada,Maple Leaf North-West Ground
+131119,3rd T20I,T20,Complete,2025-09-03 12:00:00,Bangladesh,Netherlands,Sylhet International Cricket Stadium
+122973,3rd T20I,T20,SL Won,2025-09-07 11:30:00,Zimbabwe,Sri Lanka,Harare Sports Club
+122968,2nd T20I,T20,ZIM Won,2025-09-06 11:30:00,Sri Lanka,Zimbabwe,Harare Sports Club
+122962,1st T20I,T20,SL Won,2025-09-03 11:30:00,Zimbabwe,Sri Lanka,Harare Sports Club
+133187,4th Match,T20,Abandon,2025-09-07 14:30:00,Isle of Man,Sweden,Cronkbourne Sports and Social Club Ground
+133176,3rd T20I,T20,Abandon,2025-09-07 10:00:00,Isle of Man,Sweden,Cronkbourne Sports and Social Club Ground
+133171,2nd T20I,T20,SWE Won,2025-09-06 14:30:00,Isle of Man,Sweden,Cronkbourne Sports and Social Club Ground
+133160,1st T20I,T20,SWE Won,2025-09-06 10:00:00,Isle of Man,Sweden,Cronkbourne Sports and Social Club Ground
+116765,24th Match,T20,BR Won,2025-09-07 15:00:00,Barbados Royals,Saint Lucia Kings,Kensington Oval
+116774,25th Match,T20,SNP Won,2025-09-08 00:00:00,St Kitts and Nevis Patriots,Guyana Amazon Warriors,Providence Stadium
+116759,23rd Match,T20,GAW Won,2025-09-06 23:00:00,Trinbago Knight Riders,Guyana Amazon Warriors,Providence Stadium
+116750,22nd Match,T20,ABF Won,2025-09-05 23:00:00,Barbados Royals,Antigua and Barbuda Falcons,Kensington Oval
+116741,21st Match,T20,GAW Won,2025-09-04 23:00:00,Barbados Royals,Guyana Amazon Warriors,Kensington Oval
+116738,20th Match,T20,SLK Won,2025-09-03 23:00:00,Trinbago Knight Riders,Saint Lucia Kings,Brian Lara Stadium
+111073,Quarter Final 3,T20,LANCS Won,2025-09-06 13:30:00,Kent,Lancashire,Emirates Old Trafford
+111081,Quarter Final 4,T20,SOM Won,2025-09-06 17:30:00,Warwickshire,Somerset,The Cooper Associates County Ground
+111069,Quarter Final 2,T20,HAM Won,2025-09-05 17:30:00,Hampshire,Durham,Riverside Ground
+111061,Quarter Final 1,T20,NHNTS Won,2025-09-03 17:30:00,Northamptonshire,Surrey,Kennington Oval
+132637,Qualifier 2,T20,MRM Won,2025-09-04 14:00:00,Meerut Mavericks,Lucknow Falcons,Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium
+132648,Final,T20,KRD Won,2025-09-06 14:00:00,Meerut Mavericks,Kashi Rudras,Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium
+132632,Eliminator,T20,LFC Won,2025-09-03 14:00:00,Lucknow Falcons,Gaur Gorakhapur Lions,Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium
+132621,Qualifier 1,T20,KRD Won,2025-09-03 09:30:00,Kashi Rudras,Meerut Mavericks,Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium
+130778,30th Match,T20,TST Won,2025-09-04 13:15:00,Calicut Globstars,Thrissur Titans,Greenfield International Stadium
+130806,Final,T20,KBT Won,2025-09-07 13:15:00,Kochi Blue Tigers,Aries Kollam Sailors,Greenfield International Stadium
+130751,26th Match,T20,ATR Won,2025-09-02 13:15:00,Adani Trivandrum Royals,Thrissur Titans,Greenfield International Stadium
+130784,Semi Final 1 (2nd v 3rd),T20,AKS Won,2025-09-05 09:00:00,Thrissur Titans,Aries Kollam Sailors,Greenfield International Stadium
+130795,Semi Final 2 (1st v 4th),T20,KBT Won,2025-09-05 13:15:00,Kochi Blue Tigers,Calicut Globstars,Greenfield International Stadium
+130773,29th Match,T20,AKS Won,2025-09-04 09:00:00,Alleppey Ripples,Aries Kollam Sailors,Greenfield International Stadium
+130762,28th Match,T20,KBT Won,2025-09-03 13:15:00,Aries Kollam Sailors,Kochi Blue Tigers,Greenfield International Stadium
+130756,27th Match,T20,ATR Won,2025-09-03 09:00:00,Adani Trivandrum Royals,Alleppey Ripples,Greenfield International Stadium
+123677,2nd Semi-Final,TEST,Complete,2025-09-04 04:00:00,West Zone,Central Zone,BCCI Centre of Excellence Ground B
+123672,1st Semi-Final,TEST,Complete,2025-09-04 04:00:00,South Zone,North Zone,BCCI Centre of Excellence Ground
+116489,3rd Unofficial ODI,ODI,NZA Won,2025-09-03 08:00:00,South Africa A,New Zealand A,LC de Villiers Oval
+133066,3rd T20I,T20,ESTW Won,2025-09-07 07:00:00,Czech Republic Women,Estonia Women,Estonian National Cricket and Rugby Field
+133055,1st T20I,T20,ESTW Won,2025-09-06 08:00:00,Czech Republic Women,Estonia Women,Estonian National Cricket and Rugby Field
+133061,2nd T20I,T20,ESTW Won,2025-09-06 12:30:00,Estonia Women,Czech Republic Women,Estonian National Cricket and Rugby Field
+133776,5th Match,T20,Abandon,2025-09-03 09:30:00,Jersey Women,Brazil Women,New Farnley Cricket Club
+133792,7th Match,T20,BRAW Won,2025-09-04 09:30:00,Jersey Women,Brazil Women,New Farnley Cricket Club
+133787,6th Match,T20,BRAW Won,2025-09-03 14:30:00,Brazil Women,Jersey Women,New Farnley Cricket Club
+133798,1st T20I,T20,JPNW Won,2025-09-05 02:00:00,Japan Women,Fiji Women,Albert Park 1
+133809,2nd T20I,T20,JPNW Won,2025-09-05 22:00:00,Japan Women,Fiji Women,Albert Park 1
+131686,Final,T20,ZIMW Won,2025-09-06 11:50:00,Namibia Women,Zimbabwe Women,Namibia Cricket Ground
+131625,"12th Match, Group A",T20,ZIMW Won,2025-09-03 11:50:00,Nigeria Women,Zimbabwe Women,High Performance Oval
+131609,"10th Match, Group A",T20,NAMW Won,2025-09-03 07:30:00,Namibia Women,Sierra Leone Women,High Performance Oval
+131647,2nd semi-final,T20,NAMW Won,2025-09-04 11:50:00,Tanzania Women,Namibia Women,Namibia Cricket Ground
+131664,3rd place play-off,T20,TANW Won,2025-09-06 07:30:00,Tanzania Women,Uganda Women,Namibia Cricket Ground
+131675,5th Place Play-off,T20,RWAW Won,2025-09-06 11:50:00,Rwanda Women,Kenya Women,High Performance Oval
+131669,7th Place Play-off,T20,NGAW Won,2025-09-06 07:30:00,Nigeria Women,Sierra Leone Women,High Performance Oval
+131631,1st semi-final,T20,ZIMW Won,2025-09-04 07:30:00,Uganda Women,Zimbabwe Women,Namibia Cricket Ground
+131653,5th Place Play-off 2nd Semi-Final,T20,RWAW Won,2025-09-04 11:50:00,Rwanda Women,Sierra Leone Women,High Performance Oval
+131642,5th Place Play-off 1st Semi-Final,T20,KENW Won,2025-09-04 07:30:00,Kenya Women,Nigeria Women,High Performance Oval
+131614,"11th Match, Group B",T20,UGAW Won,2025-09-03 11:50:00,Kenya Women,Uganda Women,Namibia Cricket Ground
+131598,"9th Match, Group B",T20,TANW Won,2025-09-03 07:30:00,Tanzania Women,Rwanda Women,Namibia Cricket Ground
+131741,"2nd Match, Group B",T20,PNGW Won,2025-09-08 21:30:00,Papua New Guinea Women,Japan Women,Albert Park 2
+131735,"1st Match, Group A",T20,FIJIW Won,2025-09-08 21:30:00,Cook Islands Women,Fiji Women,Albert Park 1
+122093,2nd Match,T20,BRW Won,2025-09-07 19:00:00,Guyana Amazon Warriors Women,Barbados Royals Women,Providence Stadium
+122082,1st Match,T20,GAWW Won,2025-09-06 18:00:00,Guyana Amazon Warriors Women,Trinbago Knight Riders Women,Providence Stadium

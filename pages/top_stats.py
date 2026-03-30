@@ -1,465 +1,554 @@
-import streamlit as st
-import pandas as pd
-from utils.db_connection import execute_query, get_connection
-import plotly.graph_objects as go
-import plotly.express as px
+# Player Performance Leaderboards - Cricket Analytics Dashboard
+#
+# This module displays comprehensive player statistics and rankings across
+# multiple performance categories including batting averages, strike rates,
+# total runs, and bowling figures. 
+#
+# Features:
+# - Dynamic leaderboards sorted by various metrics
+# - Country and role-based filtering
+# - Interactive charts and visualizations
+# - Comparison capabilities between players
+# - Historical performance trends
+#
+# The page queries the local SQLite database for all statistics calculations.
+
 import os
-import subprocess
-from pathlib import Path
+import sys
+import glob
+import sqlite3
 from datetime import datetime
-from dotenv import load_dotenv
 
-load_dotenv()
+import requests
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
+from dotenv import load_dotenv, find_dotenv
 
-def show_top_stats():
-    """Display top player statistics from database with refresh options."""
-    
-    st.header("📊 Top Player Stats")
-    
-    st.write("Explore the best cricket performers across different formats and categories.")
-    
-    # Database Sync Controls
-    st.markdown("---")
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("🔄 Sync Live Data from API"):
-            with st.spinner("Syncing database with live data..."):
-                try:
-                    script_dir = Path(__file__).parent.parent
-                    fetch_script = script_dir / "utils" / "fetch_live_data.py"
-                    
-                    result = subprocess.run(
-                        ["python", str(fetch_script)],
-                        capture_output=True,
-                        text=True,
-                        timeout=60
-                    )
-                    
-                    if result.returncode == 0:
-                        st.success("✅ Database synced with latest data!")
-                        st.rerun()
-                    else:
-                        st.error(f"❌ Sync failed: {result.stderr}")
-                except Exception as e:
-                    st.error(f"❌ Error: {e}")
-    
-    with col2:
-        # Show last sync time (if available)
-        try:
-            conn = get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT MAX(created_at) FROM matches")
-            result = cursor.fetchone()
-            if result and result[0]:
-                last_match_date = result[0]
-                time_diff = (datetime.now() - last_match_date).total_seconds()
-                if time_diff < 60:
-                    sync_time = f"{int(time_diff)}s ago"
-                elif time_diff < 3600:
-                    sync_time = f"{int(time_diff/60)}m ago"
-                else:
-                    sync_time = f"{int(time_diff/3600)}h ago"
-                st.metric("Last Data Update", sync_time)
-            cursor.close()
-            conn.close()
-        except:
-            st.metric("Last Data Update", "N/A")
-    
-    with col3:
-        # Show record count
-        try:
-            conn = get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT COUNT(*) FROM players")
-            player_count = cursor.fetchone()[0]
-            st.metric("Players in DB", player_count)
-            cursor.close()
-            conn.close()
-        except:
-            st.metric("Players in DB", "N/A")
-    
-    st.markdown("---")
-    
-    st.write("Explore the best cricket performers across different formats and categories.")
-    
-    # Create tabs for different stat categories
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "🏏 Batting Leaders", 
-        "🎯 Bowling Leaders",
-        "📈 All-rounders",
-        "🏪 Format Comparison",
-        "📉 Trends"
-    ])
-    
+load_dotenv(find_dotenv(), override=False)
+
+# ---------- Database Connection Import with Fallback ----------
+# Handles various project structure configurations for import reliability
+_DB_IMPORTED = False
+try:
+    ROOT_CANDIDATES = [
+        os.getcwd(),
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),  # project/
+        os.path.dirname(os.path.abspath(__file__)),                   # project/pages
+    ]
+    for path in ROOT_CANDIDATES:
+        if path and path not in sys.path:
+            sys.path.append(path)
+
+    from utils.db_connection import DatabaseConnection as _UserDatabaseConnection  # type: ignore
+    _DB_IMPORTED = True
+except Exception:
+    _DB_IMPORTED = False
+
+
+def _find_db_file() -> str | None:
+    candidates = [
+        os.path.join(os.getcwd(), "cricket.db"),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "cricket.db"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "cricket.db"),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "utils", "cricket.db"),
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+    try:
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        matches = glob.glob(os.path.join(project_root, "**", "cricket.db"), recursive=True)
+        if matches:
+            return matches[0]
+    except Exception:
+        pass
+    return None
+
+
+class _FallbackDatabaseConnection:
+    """SQLite fallback with the same interface expected by the page."""
+
+    def __init__(self, db_path: str | None = None):
+        self.db_path = db_path or _find_db_file()
+        if not self.db_path:
+            raise FileNotFoundError(
+                "Could not locate 'cricket.db'. Place it in the project root or 'utils/'."
+            )
+
+    def execute_query(self, sql: str, params: tuple | list | None = None) -> pd.DataFrame:
+        with sqlite3.connect(self.db_path) as conn:
+            return pd.read_sql_query(sql, conn, params=params or ())
+
+
+if _DB_IMPORTED:
+    DatabaseConnection = _UserDatabaseConnection  # type: ignore
+else:
+    DatabaseConnection = _FallbackDatabaseConnection  # type: ignore
+
+
+# =============================================================================
+# Page entry
+# =============================================================================
+def show_top_stats(api_key: str | None):
+    st.markdown("# 🏆 Top Player Statistics")
+    st.markdown("Comprehensive player statistics and leaderboards")
+
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["🏏 Batting Stats", "⚾ Bowling Stats", "🔄 All-rounders", "📊 Database Stats"]
+    )
+
     with tab1:
-        show_batting_leaders()
-    
+        show_batting_stats(api_key)
     with tab2:
-        show_bowling_leaders()
-    
+        show_bowling_stats(api_key)
     with tab3:
-        show_allrounders()
-    
+        show_allrounder_stats(api_key)
     with tab4:
-        show_format_comparison()
-    
-    with tab5:
-        show_trends()
+        show_database_stats()
 
 
-def show_batting_leaders():
-    """Display top batting statistics."""
-    
-    st.subheader("🏏 Batting Leaders")
-    
-    stat_type = st.radio("Select Stat Type:", 
-                        ["Most Runs", "Highest Average", "Most Centuries", "Highest Strike Rate"],
-                        horizontal=True)
-    
-    format_filter = st.selectbox("Select Format:", ["All", "Test", "ODI", "T20I"], key="bat_format")
-    
-    # Sample queries - adjust based on your actual database schema
-    queries = {
-        "Most Runs": """
-            SELECT 
-                p.full_name,
-                SUM(i.runs_scored) AS total_runs,
-                COUNT(i.innings_id) AS matches,
-                ROUND(AVG(i.runs_scored), 2) AS average,
-                ROUND(AVG(i.strike_rate), 2) AS strike_rate
-            FROM players p
-            JOIN innings i ON p.player_id = i.player_id
-            JOIN matches m ON i.match_id = m.match_id
-            WHERE i.batting_position > 0 {format_clause}
-            GROUP BY p.player_id, p.full_name
-            ORDER BY total_runs DESC
-            LIMIT 20
-        """,
-        "Highest Average": """
-            SELECT 
-                p.full_name,
-                COUNT(i.innings_id) AS matches,
-                ROUND(AVG(i.runs_scored), 2) AS average,
-                SUM(i.runs_scored) AS total_runs,
-                ROUND(AVG(i.strike_rate), 2) AS strike_rate
-            FROM players p
-            JOIN innings i ON p.player_id = i.player_id
-            JOIN matches m ON i.match_id = m.match_id
-            WHERE i.batting_position > 0 AND i.runs_scored > 0 {format_clause}
-            GROUP BY p.player_id, p.full_name
-            HAVING COUNT(i.innings_id) >= 5
-            ORDER BY average DESC
-            LIMIT 20
-        """,
-        "Most Centuries": """
-            SELECT 
-                p.full_name,
-                SUM(CASE WHEN i.runs_scored >= 100 THEN 1 ELSE 0 END) AS centuries,
-                SUM(CASE WHEN i.runs_scored >= 50 AND i.runs_scored < 100 THEN 1 ELSE 0 END) AS fifties,
-                ROUND(AVG(i.runs_scored), 2) AS average,
-                SUM(i.runs_scored) AS total_runs
-            FROM players p
-            JOIN innings i ON p.player_id = i.player_id
-            JOIN matches m ON i.match_id = m.match_id
-            WHERE i.batting_position > 0 {format_clause}
-            GROUP BY p.player_id, p.full_name
-            ORDER BY centuries DESC
-            LIMIT 20
-        """,
-        "Highest Strike Rate": """
-            SELECT 
-                p.full_name,
-                ROUND(AVG(i.strike_rate), 2) AS strike_rate,
-                SUM(i.runs_scored) AS total_runs,
-                COUNT(i.innings_id) AS matches,
-                ROUND(AVG(i.runs_scored), 2) AS average
-            FROM players p
-            JOIN innings i ON p.player_id = i.player_id
-            JOIN matches m ON i.match_id = m.match_id
-            WHERE i.batting_position > 0 AND i.strike_rate > 0 {format_clause}
-            GROUP BY p.player_id, p.full_name
-            HAVING COUNT(i.innings_id) >= 5
-            ORDER BY strike_rate DESC
-            LIMIT 20
+# ------------------------ Batting ------------------------
+def show_batting_stats(api_key: str | None):
+    st.markdown("## 🏏 Top Batting Performances")
+    format_options = ["Test", "ODI", "T20I", "All Formats"]
+    selected_format = st.selectbox("Select Format", format_options, key="batting_format")
+
+    if api_key:
+        try:
+            with st.spinner("Fetching batting statistics..."):
+                batting_data = fetch_batting_stats_api(api_key, selected_format)
+                if batting_data:
+                    display_batting_leaderboards(batting_data, selected_format)
+                else:
+                    display_sample_batting_stats(selected_format)
+        except Exception as e:
+            st.error(f"Error fetching API data: {e}")
+            display_sample_batting_stats(selected_format)
+    else:
+        st.info("🔑 Enter API key to view live statistics")
+        display_sample_batting_stats(selected_format)
+
+
+# ------------------------ Bowling ------------------------
+def show_bowling_stats(api_key: str | None):
+    st.markdown("## ⚾ Top Bowling Performances")
+    format_options = ["Test", "ODI", "T20I", "All Formats"]
+    selected_format = st.selectbox("Select Format", format_options, key="bowling_format")
+
+    if api_key:
+        try:
+            with st.spinner("Fetching bowling statistics..."):
+                bowling_data = fetch_bowling_stats_api(api_key, selected_format)
+                if bowling_data:
+                    display_bowling_leaderboards(bowling_data, selected_format)
+                else:
+                    display_sample_bowling_stats(selected_format)
+        except Exception as e:
+            st.error(f"Error fetching API data: {e}")
+            display_sample_bowling_stats(selected_format)
+    else:
+        st.info("🔑 Enter API key to view live statistics")
+        display_sample_bowling_stats(selected_format)
+
+
+# ---------------------- All-rounders ---------------------
+def show_allrounder_stats(api_key: str | None):
+    st.markdown("## 🔄 Top All-rounders")
+    st.markdown(
         """
-    }
-    
-    # Build format clause with parameterized query
-    format_clause = "" if format_filter == "All" else "AND m.match_format = %s"
-    
-    query = queries[stat_type].format(format_clause=format_clause)
-    query_params = None if format_filter == "All" else (format_filter,)
-    
-    try:
-        data = execute_query(query, query_params, fetch=True)
-        
-        if data:
-            df = pd.DataFrame(data)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-            
-            # Visualization
-            if stat_type == "Most Runs":
-                fig = px.bar(df.head(10), x="full_name", y="total_runs", 
-                           title="Top 10 Run Scorers", color="total_runs",
-                           color_continuous_scale="Viridis")
-                st.plotly_chart(fig, use_container_width=True)
-            elif stat_type == "Highest Average":
-                fig = px.bar(df.head(10), x="full_name", y="average",
-                           title="Top 10 Batting Averages", color="average",
-                           color_continuous_scale="Blues")
-                st.plotly_chart(fig, use_container_width=True)
-            elif stat_type == "Most Centuries":
-                fig = px.bar(df.head(10), x="full_name", y="centuries",
-                           title="Top 10 Century Makers", color="centuries",
-                           color_continuous_scale="Reds")
-                st.plotly_chart(fig, use_container_width=True)
-            elif stat_type == "Highest Strike Rate":
-                fig = px.bar(df.head(10), x="full_name", y="strike_rate",
-                           title="Top 10 Highest Strike Rates", color="strike_rate",
-                           color_continuous_scale="Greens")
-                st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No data available for selected filters")
-    
-    except Exception as e:
-        st.error(f"Error fetching batting stats: {e}")
-
-
-def show_bowling_leaders():
-    """Display top bowling statistics."""
-    
-    st.subheader("🎯 Bowling Leaders")
-    
-    stat_type = st.radio("Select Stat Type:",
-                        ["Most Wickets", "Best Average", "Best Economy Rate", "Best Strike Rate"],
-                        horizontal=True, key="bowl_type")
-    
-    format_filter = st.selectbox("Select Format:", ["All", "Test", "ODI", "T20I"], key="bowl_format")
-    
-    queries = {
-        "Most Wickets": """
-            SELECT 
-                p.full_name,
-                SUM(i.wickets_taken) AS total_wickets,
-                COUNT(i.innings_id) AS matches,
-                ROUND(AVG(i.bowling_average), 2) AS average,
-                ROUND(AVG(i.economy_rate), 2) AS economy
-            FROM players p
-            JOIN innings i ON p.player_id = i.player_id
-            JOIN matches m ON i.match_id = m.match_id
-            WHERE i.bowling_position > 0 {format_clause}
-            GROUP BY p.player_id, p.full_name
-            ORDER BY total_wickets DESC
-            LIMIT 20
-        """,
-        "Best Average": """
-            SELECT 
-                p.full_name,
-                ROUND(AVG(i.bowling_average), 2) AS average,
-                SUM(i.wickets_taken) AS total_wickets,
-                COUNT(i.innings_id) AS matches,
-                ROUND(AVG(i.economy_rate), 2) AS economy
-            FROM players p
-            JOIN innings i ON p.player_id = i.player_id
-            JOIN matches m ON i.match_id = m.match_id
-            WHERE i.bowling_position > 0 AND i.bowling_average > 0 {format_clause}
-            GROUP BY p.player_id, p.full_name
-            HAVING SUM(i.wickets_taken) >= 10
-            ORDER BY average ASC
-            LIMIT 20
-        """,
-        "Best Economy Rate": """
-            SELECT 
-                p.full_name,
-                ROUND(AVG(i.economy_rate), 2) AS economy_rate,
-                SUM(i.wickets_taken) AS total_wickets,
-                COUNT(i.innings_id) AS matches,
-                ROUND(AVG(i.bowling_average), 2) AS average
-            FROM players p
-            JOIN innings i ON p.player_id = i.player_id
-            JOIN matches m ON i.match_id = m.match_id
-            WHERE i.bowling_position > 0 AND i.economy_rate > 0 {format_clause}
-            GROUP BY p.player_id, p.full_name
-            HAVING COUNT(i.innings_id) >= 5
-            ORDER BY economy_rate ASC
-            LIMIT 20
-        """,
-        "Best Strike Rate": """
-            SELECT 
-                p.full_name,
-                ROUND(AVG(i.bowling_strike_rate), 2) AS strike_rate,
-                SUM(i.wickets_taken) AS total_wickets,
-                COUNT(i.innings_id) AS matches,
-                ROUND(AVG(i.bowling_average), 2) AS average
-            FROM players p
-            JOIN innings i ON p.player_id = i.player_id
-            JOIN matches m ON i.match_id = m.match_id
-            WHERE i.bowling_position > 0 AND i.bowling_strike_rate > 0 {format_clause}
-            GROUP BY p.player_id, p.full_name
-            HAVING COUNT(i.innings_id) >= 5
-            ORDER BY strike_rate ASC
-            LIMIT 20
+        **All-rounder Criteria:**
+        - Minimum 1000 runs scored
+        - Minimum 50 wickets taken
+        - Active in international cricket
         """
+    )
+
+    if api_key:
+        try:
+            with st.spinner("Fetching all-rounder statistics..."):
+                allrounder_data = fetch_allrounder_stats_api(api_key)
+                if allrounder_data:
+                    display_allrounder_analysis(allrounder_data)
+                else:
+                    display_sample_allrounder_stats()
+        except Exception as e:
+            st.error(f"Error fetching API data: {e}")
+            display_sample_allrounder_stats()
+    else:
+        st.info("🔑 Enter API key to view live statistics")
+        display_sample_allrounder_stats()
+
+
+# ------------------------ Database -----------------------
+def show_database_stats():
+    st.markdown("## 📊 Database Statistics")
+    try:
+        db = DatabaseConnection()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("### 🏏 Top Run Scorers (Database)")
+            batting_query = """
+                SELECT name, country, total_runs, batting_average, strike_rate
+                FROM players 
+                WHERE total_runs > 0
+                ORDER BY total_runs DESC 
+                LIMIT 10
+            """
+            batting_data = db.execute_query(batting_query)
+            if not batting_data.empty:
+                st.dataframe(batting_data, use_container_width=True)
+                fig_runs = px.bar(
+                    batting_data.head(8),
+                    x="name",
+                    y="total_runs",
+                    color="batting_average",
+                    title="Top 8 Run Scorers",
+                    labels={"name": "Player", "total_runs": "Total Runs"},
+                    color_continuous_scale="viridis",
+                )
+                fig_runs.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig_runs, use_container_width=True)
+            else:
+                st.info("No batting rows in 'players' table.")
+
+        with col2:
+            st.markdown("### ⚾ Top Wicket Takers (Database)")
+            bowling_query = """
+                SELECT name, country, total_wickets, bowling_average, economy_rate
+                FROM players 
+                WHERE total_wickets > 0
+                ORDER BY total_wickets DESC 
+                LIMIT 10
+            """
+            bowling_data = db.execute_query(bowling_query)
+            if not bowling_data.empty:
+                st.dataframe(bowling_data, use_container_width=True)
+                fig_wickets = px.bar(
+                    bowling_data.head(8),
+                    x="name",
+                    y="total_wickets",
+                    color="bowling_average",
+                    title="Top 8 Wicket Takers",
+                    labels={"name": "Player", "total_wickets": "Total Wickets"},
+                    color_continuous_scale="plasma",
+                )
+                fig_wickets.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig_wickets, use_container_width=True)
+            else:
+                st.info("No bowling rows in 'players' table.")
+
+        # Country-wise analysis
+        st.markdown("### 🌍 Country-wise Performance Analysis")
+        country_stats_query = """
+            SELECT 
+                country,
+                COUNT(*) as total_players,
+                AVG(batting_average) as avg_batting_avg,
+                AVG(bowling_average) as avg_bowling_avg,
+                SUM(total_runs) as total_country_runs,
+                SUM(total_wickets) as total_country_wickets
+            FROM players 
+            WHERE country IS NOT NULL
+            GROUP BY country
+            HAVING total_players >= 2
+            ORDER BY total_country_runs DESC
+        """
+        country_data = db.execute_query(country_stats_query)
+        if not country_data.empty:
+            c1, c2 = st.columns(2)
+            with c1:
+                fig_country_runs = px.pie(
+                    country_data.head(10),
+                    values="total_country_runs",
+                    names="country",
+                    title="Total Runs by Country",
+                )
+                st.plotly_chart(fig_country_runs, use_container_width=True)
+            with c2:
+                fig_country_avg = px.bar(
+                    country_data.head(10),
+                    x="country",
+                    y="avg_batting_avg",
+                    title="Average Batting Average by Country",
+                    color="avg_batting_avg",
+                    color_continuous_scale="blues",
+                )
+                fig_country_avg.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig_country_avg, use_container_width=True)
+
+            st.markdown("### 📋 Country Statistics Summary")
+            st.dataframe(country_data.round(2), use_container_width=True)
+        else:
+            st.info("No country-level rows in 'players' table.")
+
+        # Role distribution
+        st.markdown("### 🎯 Playing Role Distribution")
+        role_query = """
+            SELECT 
+                playing_role,
+                COUNT(*) as player_count,
+                AVG(batting_average) as avg_batting,
+                AVG(bowling_average) as avg_bowling,
+                AVG(strike_rate) as avg_strike_rate
+            FROM players 
+            WHERE playing_role IS NOT NULL
+            GROUP BY playing_role
+            ORDER BY player_count DESC
+        """
+        role_data = db.execute_query(role_query)
+        if not role_data.empty:
+            c1, c2 = st.columns(2)
+            with c1:
+                fig_roles = px.pie(
+                    role_data,
+                    values="player_count",
+                    names="playing_role",
+                    title="Player Distribution by Role",
+                )
+                st.plotly_chart(fig_roles, use_container_width=True)
+            with c2:
+                st.dataframe(role_data.round(2), use_container_width=True)
+        else:
+            st.info("No role-level rows in 'players' table.")
+
+    except FileNotFoundError as e:
+        st.error(str(e))
+        st.info("Tip: put 'cricket.db' in your project root or in 'utils/'.")
+    except Exception as e:
+        st.error(f"Error loading database statistics: {e}")
+
+
+# =============================================================================
+# API calls (sample endpoints; schema may vary by plan)
+# =============================================================================
+def fetch_batting_stats_api(api_key: str, format_type: str):
+    base_url = "https://cricbuzz-cricket.p.rapidapi.com"
+    headers = {"X-RapidAPI-Key": api_key, "X-RapidAPI-Host": "cricbuzz-cricket.p.rapidapi.com"}
+    try:
+        r = requests.get(f"{base_url}/stats/v1/rankings/batsmen", headers=headers, timeout=10)
+        return r.json() if r.status_code == 200 else None
+    except Exception:
+        return None
+
+
+def fetch_bowling_stats_api(api_key: str, format_type: str):
+    base_url = "https://cricbuzz-cricket.p.rapidapi.com"
+    headers = {"X-RapidAPI-Key": api_key, "X-RapidAPI-Host": "cricbuzz-cricket.p.rapidapi.com"}
+    try:
+        r = requests.get(f"{base_url}/stats/v1/rankings/bowlers", headers=headers, timeout=10)
+        return r.json() if r.status_code == 200 else None
+    except Exception:
+        return None
+
+
+def fetch_allrounder_stats_api(api_key: str):
+    base_url = "https://cricbuzz-cricket.p.rapidapi.com"
+    headers = {"X-RapidAPI-Key": api_key, "X-RapidAPI-Host": "cricbuzz-cricket.p.rapidapi.com"}
+    try:
+        r = requests.get(f"{base_url}/stats/v1/rankings/allrounders", headers=headers, timeout=10)
+        return r.json() if r.status_code == 200 else None
+    except Exception:
+        return None
+
+
+# =============================================================================
+# Render helpers for live API (stub until you wire exact schema)
+# =============================================================================
+def display_batting_leaderboards(data, format_type: str):
+    st.success(f"📊 Live {format_type} Batting Statistics")
+    st.info("API data processing is schema-dependent. Wire it up once you confirm the JSON shape.")
+
+
+def display_bowling_leaderboards(data, format_type: str):
+    st.success(f"📊 Live {format_type} Bowling Statistics")
+    st.info("API data processing is schema-dependent. Wire it up once you confirm the JSON shape.")
+
+
+def display_allrounder_analysis(data):
+    st.success("📊 Live All-rounder Statistics")
+    st.info("API data processing is schema-dependent. Wire it up once you confirm the JSON shape.")
+
+
+# =============================================================================
+# Sample fallbacks
+# =============================================================================
+def display_sample_batting_stats(format_type: str):
+    st.info(f"📝 Sample {format_type} Batting Statistics (Live data requires API key)")
+    sample_batting = {
+        "Test": [
+            {"Player": "Steve Smith", "Country": "Australia", "Runs": 8647, "Average": 61.8, "Strike Rate": 86.4, "Centuries": 27},
+            {"Player": "Kane Williamson", "Country": "New Zealand", "Runs": 7368, "Average": 54.0, "Strike Rate": 81.2, "Centuries": 24},
+            {"Player": "Virat Kohli", "Country": "India", "Runs": 8043, "Average": 50.4, "Strike Rate": 92.5, "Centuries": 27},
+            {"Player": "Joe Root", "Country": "England", "Runs": 9460, "Average": 49.8, "Strike Rate": 89.1, "Centuries": 26},
+            {"Player": "Babar Azam", "Country": "Pakistan", "Runs": 3596, "Average": 45.7, "Strike Rate": 89.7, "Centuries": 9},
+        ],
+        "ODI": [
+            {"Player": "Virat Kohli", "Country": "India", "Runs": 12898, "Average": 58.1, "Strike Rate": 93.2, "Centuries": 46},
+            {"Player": "Rohit Sharma", "Country": "India", "Runs": 9825, "Average": 48.9, "Strike Rate": 88.9, "Centuries": 30},
+            {"Player": "David Warner", "Country": "Australia", "Runs": 5455, "Average": 44.7, "Strike Rate": 95.4, "Centuries": 18},
+            {"Player": "Babar Azam", "Country": "Pakistan", "Runs": 4442, "Average": 59.2, "Strike Rate": 89.7, "Centuries": 17},
+            {"Player": "Quinton de Kock", "Country": "South Africa", "Runs": 5431, "Average": 44.7, "Strike Rate": 95.1, "Centuries": 17},
+        ],
+        "T20I": [
+            {"Player": "Babar Azam", "Country": "Pakistan", "Runs": 3485, "Average": 41.6, "Strike Rate": 129.2, "Centuries": 3},
+            {"Player": "Mohammad Rizwan", "Country": "Pakistan", "Runs": 2607, "Average": 47.4, "Strike Rate": 127.2, "Centuries": 1},
+            {"Player": "Suryakumar Yadav", "Country": "India", "Runs": 1675, "Average": 46.5, "Strike Rate": 175.2, "Centuries": 4},
+            {"Player": "Jos Buttler", "Country": "England", "Runs": 2140, "Average": 35.0, "Strike Rate": 144.9, "Centuries": 1},
+            {"Player": "Aaron Finch", "Country": "Australia", "Runs": 3120, "Average": 34.3, "Strike Rate": 142.5, "Centuries": 2},
+        ],
     }
-    
-    format_clause = "" if format_filter == "All" else "AND m.match_format = %s"
-    query = queries[stat_type].format(format_clause=format_clause)
-    query_params = None if format_filter == "All" else (format_filter,)
-    
+    df = (
+        pd.DataFrame([dict(p, **{"Format": fmt}) for fmt, players in sample_batting.items() for p in players])
+        if format_type == "All Formats"
+        else pd.DataFrame(sample_batting.get(format_type, sample_batting["ODI"]))
+    )
+    st.dataframe(df, use_container_width=True)
+
+    c1, c2 = st.columns(2)
+    with c1:
+        fig_scatter = px.scatter(
+            df.head(10),
+            x="Average",
+            y="Runs",
+            size="Centuries",
+            color="Strike Rate",
+            hover_name="Player",
+            title=f"{format_type} - Runs vs Average",
+            color_continuous_scale="viridis",
+        )
+        st.plotly_chart(fig_scatter, use_container_width=True)
+    with c2:
+        fig_bar = px.bar(
+            df.head(8),
+            x="Player",
+            y="Runs",
+            color="Average",
+            title=f"Top 8 Run Scorers - {format_type}",
+            color_continuous_scale="blues",
+        )
+        fig_bar.update_layout(xaxis_tickangle=-45)
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+
+def display_sample_bowling_stats(format_type: str):
+    st.info(f"📝 Sample {format_type} Bowling Statistics (Live data requires API key)")
+    sample_bowling = {
+        "Test": [
+            {"Player": "Pat Cummins", "Country": "Australia", "Wickets": 269, "Average": 23.4, "Economy": 3.2, "Strike Rate": 43.8},
+            {"Player": "Jasprit Bumrah", "Country": "India", "Wickets": 159, "Average": 20.2, "Economy": 2.7, "Strike Rate": 44.8},
+            {"Player": "Kagiso Rabada", "Country": "South Africa", "Wickets": 270, "Average": 22.9, "Economy": 3.6, "Strike Rate": 38.1},
+            {"Player": "Josh Hazlewood", "Country": "Australia", "Wickets": 236, "Average": 25.3, "Economy": 2.9, "Strike Rate": 52.3},
+            {"Player": "Tim Southee", "Country": "New Zealand", "Wickets": 385, "Average": 28.9, "Economy": 3.2, "Strike Rate": 54.1},
+        ],
+        "ODI": [
+            {"Player": "Trent Boult", "Country": "New Zealand", "Wickets": 169, "Average": 25.9, "Economy": 4.8, "Strike Rate": 32.4},
+            {"Player": "Josh Hazlewood", "Country": "Australia", "Wickets": 100, "Average": 24.6, "Economy": 4.1, "Strike Rate": 36.0},
+            {"Player": "Jasprit Bumrah", "Country": "India", "Wickets": 132, "Average": 24.4, "Economy": 4.6, "Strike Rate": 31.8},
+            {"Player": "Mujeeb Ur Rahman", "Country": "Afghanistan", "Wickets": 120, "Average": 21.4, "Economy": 4.2, "Strike Rate": 30.5},
+            {"Player": "Shaheen Afridi", "Country": "Pakistan", "Wickets": 89, "Average": 23.1, "Economy": 5.2, "Strike Rate": 26.6},
+        ],
+        "T20I": [
+            {"Player": "Rashid Khan", "Country": "Afghanistan", "Wickets": 140, "Average": 13.2, "Economy": 6.2, "Strike Rate": 12.8},
+            {"Player": "Shaheen Afridi", "Country": "Pakistan", "Wickets": 97, "Average": 18.7, "Economy": 7.3, "Strike Rate": 15.4},
+            {"Player": "Adil Rashid", "Country": "England", "Wickets": 108, "Average": 23.4, "Economy": 7.6, "Strike Rate": 18.5},
+            {"Player": "Wanindu Hasaranga", "Country": "Sri Lanka", "Wickets": 91, "Average": 15.4, "Economy": 6.4, "Strike Rate": 14.4},
+            {"Player": "Josh Hazlewood", "Country": "Australia", "Wickets": 63, "Average": 20.9, "Economy": 7.3, "Strike Rate": 17.2},
+        ],
+    }
+    df = (
+        pd.DataFrame([dict(p, **{"Format": fmt}) for fmt, players in sample_bowling.items() for p in players])
+        if format_type == "All Formats"
+        else pd.DataFrame(sample_bowling.get(format_type, sample_bowling["ODI"]))
+    )
+    st.dataframe(df, use_container_width=True)
+
+    c1, c2 = st.columns(2)
+    with c1:
+        fig_scatter = px.scatter(
+            df.head(10),
+            x="Average",
+            y="Wickets",
+            size="Strike Rate",
+            color="Economy",
+            hover_name="Player",
+            title=f"{format_type} - Wickets vs Average",
+            color_continuous_scale="plasma",
+        )
+        st.plotly_chart(fig_scatter, use_container_width=True)
+    with c2:
+        fig_bar = px.bar(
+            df.head(8),
+            x="Player",
+            y="Wickets",
+            color="Average",
+            title=f"Top 8 Wicket Takers - {format_type}",
+            color_continuous_scale="reds",
+        )
+        fig_bar.update_layout(xaxis_tickangle=-45)
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+
+def display_sample_allrounder_stats():
+    st.info("📝 Sample All-rounder Statistics (Live data requires API key)")
+    sample_allrounders = [
+        {"Player": "Ben Stokes", "Country": "England", "Runs": 5061, "Bat Avg": 35.8, "Wickets": 197, "Bowl Avg": 31.2, "Points": 428},
+        {"Player": "Ravindra Jadeja", "Country": "India", "Runs": 3897, "Bat Avg": 35.2, "Wickets": 294, "Bowl Avg": 24.8, "Points": 425},
+        {"Player": "Jason Holder", "Country": "West Indies", "Runs": 2650, "Bat Avg": 33.1, "Wickets": 145, "Bowl Avg": 27.9, "Points": 378},
+        {"Player": "Shakib Al Hasan", "Country": "Bangladesh", "Runs": 4201, "Bat Avg": 38.9, "Wickets": 230, "Bowl Avg": 31.1, "Points": 405},
+        {"Player": "Pat Cummins", "Country": "Australia", "Runs": 1045, "Bat Avg": 22.1, "Wickets": 269, "Bowl Avg": 23.4, "Points": 352},
+    ]
+    df = pd.DataFrame(sample_allrounders)
+    st.dataframe(df, use_container_width=True)
+
+    c1, c2 = st.columns(2)
+    with c1:
+        fig_scatter = px.scatter(
+            df,
+            x="Bat Avg",
+            y="Bowl Avg",
+            size="Points",
+            color="Points",
+            hover_name="Player",
+            title="All-rounder Performance Matrix",
+            labels={"Bat Avg": "Batting Average", "Bowl Avg": "Bowling Average"},
+            color_continuous_scale="viridis",
+        )
+        st.plotly_chart(fig_scatter, use_container_width=True)
+    with c2:
+        fig_bar = px.bar(
+            df.sort_values("Points", ascending=True),
+            x="Points",
+            y="Player",
+            orientation="h",
+            title="All-rounder Rankings",
+            color="Points",
+            color_continuous_scale="blues",
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+
+# =============================================================================
+# Call the page entry so Streamlit renders content
+# =============================================================================
+def _read_api_key() -> str | None:
+    # 1) Prefer environment (.env already loaded via load_dotenv)
+    key = os.getenv("RAPIDAPI_KEY")
+    if key and key.strip():
+        return key.strip()
+
+    # 2) Fall back to Streamlit Cloud / local secrets if present
     try:
-        data = execute_query(query, query_params, fetch=True)
-        
-        if data:
-            df = pd.DataFrame(data)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-            
-            # Visualization
-            if stat_type == "Most Wickets":
-                fig = px.bar(df.head(10), x="full_name", y="total_wickets",
-                           title="Top 10 Wicket Takers", color="total_wickets",
-                           color_continuous_scale="Oranges")
-                st.plotly_chart(fig, use_container_width=True)
-            elif stat_type == "Best Average":
-                fig = px.bar(df.head(10), x="full_name", y="average",
-                           title="Top 10 Best Bowling Averages", color="average",
-                           color_continuous_scale="RdYlGn_r")
-                st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No data available for selected filters")
-    
-    except Exception as e:
-        st.error(f"Error fetching bowling stats: {e}")
+        # Using [] avoids creating a .get() call that still parses; the try guards the parse error.
+        key = st.secrets["RAPIDAPI_KEY"]
+        return key.strip() if isinstance(key, str) and key.strip() else None
+    except Exception:
+        return None
 
 
-def show_allrounders():
-    """Display all-rounder statistics."""
-    
-    st.subheader("⭐ All-Round Performers")
-    
-    query = """
-        SELECT 
-            p.full_name,
-            SUM(CASE WHEN i.batting_position > 0 THEN i.runs_scored ELSE 0 END) AS batting_runs,
-            SUM(CASE WHEN i.bowling_position > 0 THEN i.wickets_taken ELSE 0 END) AS bowling_wickets,
-            ROUND(AVG(CASE WHEN i.batting_position > 0 THEN i.runs_scored END), 2) AS batting_avg,
-            ROUND(AVG(CASE WHEN i.bowling_position > 0 THEN i.bowling_average END), 2) AS bowling_avg
-        FROM players p
-        JOIN innings i ON p.player_id = i.player_id
-        WHERE p.playing_role = 'All-rounder'
-        GROUP BY p.player_id, p.full_name
-        HAVING SUM(CASE WHEN i.batting_position > 0 THEN i.runs_scored ELSE 0 END) > 500
-            AND SUM(CASE WHEN i.bowling_position > 0 THEN i.wickets_taken ELSE 0 END) > 20
-        ORDER BY batting_runs DESC
-        LIMIT 15
-    """
-    
-    try:
-        data = execute_query(query, fetch=True)
-        
-        if data:
-            df = pd.DataFrame(data)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-            
-            # Bubble chart
-            fig = px.scatter(df, x="batting_runs", y="bowling_wickets",
-                           size="batting_runs", color="bowling_wickets",
-                           hover_data=["full_name", "batting_avg", "bowling_avg"],
-                           title="All-rounder Performance: Runs vs Wickets",
-                           labels={"batting_runs": "Total Runs", "bowling_wickets": "Total Wickets"})
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No all-rounder data available")
-    
-    except Exception as e:
-        st.error(f"Error fetching all-rounder stats: {e}")
-
-
-def show_format_comparison():
-    """Show player performance across different formats."""
-    
-    st.subheader("📈 Format Comparison")
-    
-    st.info("Compare player performance across Test, ODI, and T20 formats")
-    
-    query = """
-        SELECT 
-            p.full_name,
-            SUM(CASE WHEN m.match_format = 'Test' AND i.batting_position > 0 
-                     THEN i.runs_scored ELSE 0 END) AS test_runs,
-            SUM(CASE WHEN m.match_format = 'ODI' AND i.batting_position > 0 
-                     THEN i.runs_scored ELSE 0 END) AS odi_runs,
-            SUM(CASE WHEN m.match_format = 'T20I' AND i.batting_position > 0 
-                     THEN i.runs_scored ELSE 0 END) AS t20i_runs
-        FROM players p
-        JOIN innings i ON p.player_id = i.player_id
-        JOIN matches m ON i.match_id = m.match_id
-        WHERE i.batting_position > 0
-        GROUP BY p.player_id, p.full_name
-        HAVING SUM(i.runs_scored) > 100
-        ORDER BY test_runs DESC
-        LIMIT 10
-    """
-    
-    try:
-        data = execute_query(query, fetch=True)
-        
-        if data:
-            df = pd.DataFrame(data)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-            
-            # Stacked bar chart
-            fig = px.bar(df, x="full_name",
-                       y=["test_runs", "odi_runs", "t20i_runs"],
-                       title="Player Runs Across Different Formats",
-                       barmode="stack", color_discrete_sequence=["#1f77b4", "#ff7f0e", "#2ca02c"])
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No format comparison data available")
-    
-    except Exception as e:
-        st.error(f"Error fetching format comparison: {e}")
-
-
-def show_trends():
-    """Display performance trends."""
-    
-    st.subheader("📉 Performance Trends")
-    
-    st.write("Track how player performance evolves over time")
-    
-    # Sample trend query
-    query = """
-        SELECT 
-            p.full_name,
-            EXTRACT(YEAR FROM m.match_date) AS year,
-            COUNT(i.innings_id) AS matches,
-            ROUND(AVG(i.runs_scored), 2) AS avg_runs
-        FROM players p
-        JOIN innings i ON p.player_id = i.player_id
-        JOIN matches m ON i.match_id = m.match_id
-        WHERE i.batting_position > 0
-        GROUP BY p.player_id, p.full_name, EXTRACT(YEAR FROM m.match_date)
-        ORDER BY p.full_name, year DESC
-        LIMIT 50
-    """
-    
-    try:
-        data = execute_query(query, fetch=True)
-        
-        if data:
-            df = pd.DataFrame(data)
-            
-            # Get unique players
-            players = df['full_name'].unique()[:5]  # Top 5 players
-            
-            fig = px.line(df[df['full_name'].isin(players)], 
-                        x="year", y="avg_runs", color="full_name",
-                        title="Player Performance Trends Over Years",
-                        markers=True)
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No trend data available")
-    
-    except Exception as e:
-        st.error(f"Error fetching trends: {e}")
+# Streamlit executes this file top-to-bottom; call the renderer:
+api_key__ = _read_api_key()
+show_top_stats(api_key__)

@@ -1,7 +1,16 @@
-streamlit>=1.28.0
-requests>=2.31.0
-pandas>=2.1.0
-psycopg2-binary>=2.9.9
-python-dotenv>=1.0.0
-plotly>=5.17.0
-numpy>=1.24.0
+# Cricket Analytics Dashboard - Python Dependencies
+#
+# Web Framework
+streamlit                 # Interactive web framework for data applications
+#
+# API & HTTP
+requests                  # HTTP client for Cricbuzz API communication
+#
+# Data Processing & Analytics
+pandas                    # Data analysis and manipulation library
+#
+# Configuration Management
+python-dotenv            # Load environment variables from .env file
+#
+# Visualization
+plotly>=5.24.0           # Interactive charting library for analytics visualizations
