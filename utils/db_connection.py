@@ -347,9 +347,9 @@ def _insert_many_tolerant(cur, table: str, rows: list[dict]):
         data.append(tuple(vals))
     cur.executemany(sql, data)
 
-# ---------- tiny demo seed (idempotent & tolerant) ----------
+# ---------- comprehensive demo seed (idempotent & tolerant) ----------
 def seed_demo_data_if_empty(force: bool = True) -> None:
-    """Insert a small dataset so all 25 queries return rows."""
+    """Insert a comprehensive dataset so all 25 queries return rows."""
     ensure_schema()
     conn = get_conn()
     cur = conn.cursor()
@@ -357,18 +357,20 @@ def seed_demo_data_if_empty(force: bool = True) -> None:
     if not force:
         try:
             cur.execute("SELECT COUNT(*) FROM matches WHERE winner IS NOT NULL;")
-            if cur.fetchone()[0] >= 25:
+            if cur.fetchone()[0] >= 40:
                 conn.close()
                 return
         except Exception:
             pass
 
-    # Venues
+    # Venues (capacity >50k and standard stadiums)
     venues = [
         {"venue_id":"MCG","name":"Melbourne Cricket Ground","city":"Melbourne","country":"Australia","capacity":100024,"venue":"Melbourne Cricket Ground"},
         {"venue_id":"Eden","name":"Eden Gardens","city":"Kolkata","country":"India","capacity":68000,"venue":"Eden Gardens"},
         {"venue_id":"Lords","name":"Lord's","city":"London","country":"England","capacity":30000,"venue":"Lord's"},
         {"venue_id":"Wankhede","name":"Wankhede Stadium","city":"Mumbai","country":"India","capacity":33000,"venue":"Wankhede Stadium"},
+        {"venue_id":"NAM","name":"Narendra Modi Stadium","city":"Ahmedabad","country":"India","capacity":132000,"venue":"Narendra Modi Stadium"},
+        {"venue_id":"SCG","name":"Sydney Cricket Ground","city":"Sydney","country":"Australia","capacity":48000,"venue":"Sydney Cricket Ground"},
     ]
     _insert_many_tolerant(cur, "venues", venues)
 
@@ -377,90 +379,217 @@ def seed_demo_data_if_empty(force: bool = True) -> None:
         {"series_id":"S_T20WC24","series_name":"ICC Men's T20 World Cup 2024","host_country":"USA/WI","match_type":"T20I","start_date":"2024-06-02","planned_matches":55},
         {"series_id":"S_BGT24","series_name":"Border-Gavaskar Trophy 2024","host_country":"India","match_type":"Test","start_date":"2024-02-10","planned_matches":5},
         {"series_id":"S_ODI25","series_name":"Bilateral ODI Series 2025","host_country":"India","match_type":"ODI","start_date":"2025-08-10","planned_matches":3},
+        {"series_id":"S_T20I25","series_name":"T20I Series 2025","host_country":"Multi","match_type":"T20I","start_date":"2025-01-01","planned_matches":10},
     ]
     _insert_many_tolerant(cur, "series", series)
 
-    # Players
+    # Players (expand with more Indians, all-rounders, consistent/inconsistent)
     players = [
         {"name":"Virat Kohli","country":"India","playing_role":"Batsman","batting_style":"Right-hand bat","bowling_style":None,"total_runs":13000,"total_wickets":4,"batting_average":57.0,"strike_rate":92.0,"bowling_average":None,"economy_rate":None,"catches":150,"stumpings":0},
         {"name":"Rohit Sharma","country":"India","playing_role":"Batsman","batting_style":"Right-hand bat","bowling_style":None,"total_runs":11000,"total_wickets":8,"batting_average":49.0,"strike_rate":90.0,"bowling_average":None,"economy_rate":None,"catches":120,"stumpings":0},
+        {"name":"KL Rahul","country":"India","playing_role":"Batsman","batting_style":"Right-hand bat","bowling_style":None,"total_runs":6500,"total_wickets":0,"batting_average":44.0,"strike_rate":88.0,"bowling_average":None,"economy_rate":None,"catches":85,"stumpings":5},
+        {"name":"Hardik Pandya","country":"India","playing_role":"All-rounder","batting_style":"Right-hand bat","bowling_style":"Right-arm fast","total_runs":2500,"total_wickets":160,"batting_average":32.0,"strike_rate":135.0,"bowling_average":30.0,"economy_rate":7.2,"catches":75,"stumpings":0},
+        {"name":"Ravindra Jadeja","country":"India","playing_role":"All-rounder","batting_style":"Left-hand bat","bowling_style":"Slow left arm","total_runs":2800,"total_wickets":220,"batting_average":38.0,"strike_rate":105.0,"bowling_average":31.0,"economy_rate":3.5,"catches":95,"stumpings":8},
+        {"name":"Axar Patel","country":"India","playing_role":"All-rounder","batting_style":"Left-hand bat","bowling_style":"Slow left arm","total_runs":1800,"total_wickets":150,"batting_average":35.0,"strike_rate":120.0,"bowling_average":28.0,"economy_rate":3.8,"catches":60,"stumpings":3},
+        {"name":"Jasprit Bumrah","country":"India","playing_role":"Bowler","batting_style":"Right-hand bat","bowling_style":"Right-arm fast","total_runs":500,"total_wickets":350,"batting_average":15.0,"strike_rate":80.0,"bowling_average":25.0,"economy_rate":4.9,"catches":60,"stumpings":0},
+        {"name":"Bhuvneshwar Kumar","country":"India","playing_role":"Bowler","batting_style":"Right-hand bat","bowling_style":"Right-arm fast","total_runs":400,"total_wickets":280,"batting_average":12.0,"strike_rate":75.0,"bowling_average":28.0,"economy_rate":5.1,"catches":50,"stumpings":0},
+        {"name":"Mohammed Siraj","country":"India","playing_role":"Bowler","batting_style":"Right-hand bat","bowling_style":"Right-arm fast","total_runs":300,"total_wickets":190,"batting_average":10.0,"strike_rate":70.0,"bowling_average":26.5,"economy_rate":4.8,"catches":40,"stumpings":0},
         {"name":"Steve Smith","country":"Australia","playing_role":"Batsman","batting_style":"Right-hand bat","bowling_style":None,"total_runs":9500,"total_wickets":30,"batting_average":54.0,"strike_rate":83.0,"bowling_average":None,"economy_rate":None,"catches":100,"stumpings":0},
         {"name":"David Warner","country":"Australia","playing_role":"Batsman","batting_style":"Left-hand bat","bowling_style":None,"total_runs":6500,"total_wickets":0,"batting_average":45.0,"strike_rate":96.0,"bowling_average":None,"economy_rate":None,"catches":95,"stumpings":0},
-        {"name":"Jasprit Bumrah","country":"India","playing_role":"Bowler","batting_style":"Right-hand bat","bowling_style":"Right-arm fast","total_runs":500,"total_wickets":350,"batting_average":15.0,"strike_rate":80.0,"bowling_average":25.0,"economy_rate":4.9,"catches":60,"stumpings":0},
+        {"name":"Travis Head","country":"Australia","playing_role":"Batsman","batting_style":"Left-hand bat","bowling_style":None,"total_runs":4200,"total_wickets":5,"batting_average":42.0,"strike_rate":95.0,"bowling_average":None,"economy_rate":None,"catches":70,"stumpings":1},
         {"name":"Mitchell Starc","country":"Australia","playing_role":"Bowler","batting_style":"Left-hand bat","bowling_style":"Left-arm fast","total_runs":600,"total_wickets":320,"batting_average":13.0,"strike_rate":85.0,"bowling_average":27.0,"economy_rate":5.2,"catches":55,"stumpings":0},
+        {"name":"Josh Hazlewood","country":"Australia","playing_role":"Bowler","batting_style":"Right-hand bat","bowling_style":"Right-arm fast","total_runs":350,"total_wickets":280,"batting_average":11.0,"strike_rate":72.0,"bowling_average":28.5,"economy_rate":4.5,"catches":45,"stumpings":0},
         {"name":"Joe Root","country":"England","playing_role":"Batsman","batting_style":"Right-hand bat","bowling_style":None,"total_runs":10000,"total_wickets":20,"batting_average":50.0,"strike_rate":87.0,"bowling_average":None,"economy_rate":None,"catches":110,"stumpings":0},
+        {"name":"Ben Stokes","country":"England","playing_role":"All-rounder","batting_style":"Left-hand bat","bowling_style":"Right-arm fast","total_runs":3500,"total_wickets":170,"batting_average":40.0,"strike_rate":95.0,"bowling_average":32.0,"economy_rate":4.1,"catches":100,"stumpings":1},
         {"name":"Rashid Khan","country":"Afghanistan","playing_role":"Bowler","batting_style":"Right-hand bat","bowling_style":"Legbreak googly","total_runs":800,"total_wickets":200,"batting_average":20.0,"strike_rate":130.0,"bowling_average":21.0,"economy_rate":6.4,"catches":40,"stumpings":0},
     ]
     _insert_many_tolerant(cur, "players", players)
 
-    # Matches (spread across formats/years/venues, includes winners & toss)
+    # Matches (comprehensive: many formats, years, venues, head-to-head records)
     matches = [
+        # IND vs AUS recent ODIs
         {"match_id":"M2025-IND-AUS-ODI-01","description":"1st ODI: IND vs AUS","match_type":"ODI","status":"Completed","start_time":"2025-09-03 09:00:00","team1":"India","team2":"Australia","venue":"Eden Gardens, Kolkata","winner":"India","victory_margin":"12","victory_type":"runs","toss_winner":"Australia","toss_decision":"bat","venue_id":"Eden","venue_country":"India","series_id":"S_ODI25","series_name":"Bilateral ODI Series 2025","city":"Kolkata"},
         {"match_id":"M2025-IND-AUS-ODI-02","description":"2nd ODI: IND vs AUS","match_type":"ODI","status":"Completed","start_time":"2025-08-29 14:00:00","team1":"India","team2":"Australia","venue":"Wankhede Stadium, Mumbai","winner":"Australia","victory_margin":"3","victory_type":"wickets","toss_winner":"India","toss_decision":"bat","venue_id":"Wankhede","venue_country":"India","series_id":"S_ODI25","series_name":"Bilateral ODI Series 2025","city":"Mumbai"},
-        {"match_id":"M2024-IND-AUS-T20I-01","description":"T20I: IND vs AUS","match_type":"T20I","status":"Completed","start_time":"2024-06-12 19:30:00","team1":"India","team2":"Australia","venue":"Eden Gardens, Kolkata","winner":"India","victory_margin":"4","victory_type":"wickets","toss_winner":"Australia","toss_decision":"field","venue_id":"Eden","venue_country":"India","series_id":"S_T20WC24","series_name":"ICC Men's T20 World Cup 2024","city":"Kolkata"},
-        {"match_id":"M2023-IND-AUS-ODI-01","description":"ODI: IND vs AUS","match_type":"ODI","status":"Completed","start_time":"2023-10-15 14:00:00","team1":"India","team2":"Australia","venue":"Melbourne Cricket Ground","winner":"India","victory_margin":"40","victory_type":"runs","toss_winner":"India","toss_decision":"bat","venue_id":"MCG","venue_country":"Australia","series_id":None,"series_name":None,"city":"Melbourne"},
-        {"match_id":"M2023-IND-AUS-TEST-01","description":"Test: IND vs AUS","match_type":"Test","status":"Completed","start_time":"2023-03-03 10:00:00","team1":"India","team2":"Australia","venue":"Melbourne Cricket Ground","winner":"Australia","victory_margin":"80","victory_type":"runs","toss_winner":"Australia","toss_decision":"bat","venue_id":"MCG","venue_country":"Australia","series_id":"S_BGT24","series_name":"Border-Gavaskar Trophy 2024","city":"Melbourne"},
-        {"match_id":"M2024-09-20-IND-PAK-ODI","description":"ODI: IND vs PAK","match_type":"ODI","status":"Completed","start_time":"2024-09-20 13:00:00","team1":"India","team2":"Pakistan","venue":"Eden Gardens, Kolkata","winner":"India","victory_margin":"24","victory_type":"runs","toss_winner":"Pakistan","toss_decision":"bat","venue_id":"Eden","venue_country":"India","series_id":None,"series_name":None,"city":"Kolkata"},
+        {"match_id":"M2025-IND-AUS-ODI-03","description":"3rd ODI: IND vs AUS","match_type":"ODI","status":"Completed","start_time":"2025-08-24 14:00:00","team1":"India","team2":"Australia","venue":"Narendra Modi Stadium, Ahmedabad","winner":"India","victory_margin":"8","victory_type":"runs","toss_winner":"India","toss_decision":"field","venue_id":"NAM","venue_country":"India","series_id":"S_ODI25","series_name":"Bilateral ODI Series 2025","city":"Ahmedabad"},
+        {"match_id":"M2024-03-15-IND-AUS-ODI","description":"ODI: IND vs AUS","match_type":"ODI","status":"Completed","start_time":"2024-03-15 14:00:00","team1":"India","team2":"Australia","venue":"Melbourne Cricket Ground","winner":"Australia","victory_margin":"15","victory_type":"runs","toss_winner":"India","toss_decision":"bat","venue_id":"MCG","venue_country":"Australia","series_id":None,"series_name":None,"city":"Melbourne"},
+        {"match_id":"M2023-10-15-IND-AUS-ODI","description":"ODI: IND vs AUS","match_type":"ODI","status":"Completed","start_time":"2023-10-15 14:00:00","team1":"India","team2":"Australia","venue":"Melbourne Cricket Ground","winner":"India","victory_margin":"40","victory_type":"runs","toss_winner":"India","toss_decision":"bat","venue_id":"MCG","venue_country":"Australia","series_id":None,"series_name":None,"city":"Melbourne"},
+        
+        # T20 matches
+        {"match_id":"M2024-06-12-IND-AUS-T20I","description":"T20I: IND vs AUS","match_type":"T20I","status":"Completed","start_time":"2024-06-12 19:30:00","team1":"India","team2":"Australia","venue":"Eden Gardens, Kolkata","winner":"India","victory_margin":"4","victory_type":"wickets","toss_winner":"Australia","toss_decision":"field","venue_id":"Eden","venue_country":"India","series_id":"S_T20WC24","series_name":"ICC Men's T20 World Cup 2024","city":"Kolkata"},
         {"match_id":"M2024-11-30-IND-PAK-T20I","description":"T20I: IND vs PAK","match_type":"T20I","status":"Completed","start_time":"2024-11-30 19:30:00","team1":"India","team2":"Pakistan","venue":"Eden Gardens, Kolkata","winner":"Pakistan","victory_margin":"3","victory_type":"wickets","toss_winner":"India","toss_decision":"bat","venue_id":"Eden","venue_country":"India","series_id":"S_T20WC24","series_name":"ICC Men's T20 World Cup 2024","city":"Kolkata"},
-        {"match_id":"M2025-02-05-IND-NZ-T20I","description":"T20I: IND vs NZ","match_type":"T20I","status":"Completed","start_time":"2025-02-05 19:00:00","team1":"India","team2":"New Zealand","venue":"Wankhede Stadium, Mumbai","winner":"India","victory_margin":"4","victory_type":"wickets","toss_winner":"India","toss_decision":"field","venue_id":"Wankhede","venue_country":"India","series_id":None,"series_name":None,"city":"Mumbai"},
-        {"match_id":"M2025-05-22-IND-SA-ODI","description":"ODI: IND vs SA","match_type":"ODI","status":"Completed","start_time":"2025-05-22 13:00:00","team1":"India","team2":"South Africa","venue":"Wankhede Stadium, Mumbai","winner":"South Africa","victory_margin":"8","victory_type":"runs","toss_winner":"India","toss_decision":"bat","venue_id":"Wankhede","venue_country":"India","series_id":None,"series_name":None,"city":"Mumbai"},
-        {"match_id":"M2025-07-14-IND-SL-T20I","description":"T20I: IND vs SL","match_type":"T20I","status":"Completed","start_time":"2025-07-14 19:30:00","team1":"India","team2":"Sri Lanka","venue":"Eden Gardens, Kolkata","winner":"India","victory_margin":"2","victory_type":"wickets","toss_winner":"India","toss_decision":"field","venue_id":"Eden","venue_country":"India","series_id":None,"series_name":None,"city":"Kolkata"},
+        {"match_id":"M2025-02-05-IND-NZ-T20I","description":"T20I: IND vs NZ","match_type":"T20I","status":"Completed","start_time":"2025-02-05 19:00:00","team1":"India","team2":"New Zealand","venue":"Wankhede Stadium, Mumbai","winner":"India","victory_margin":"4","victory_type":"wickets","toss_winner":"India","toss_decision":"field","venue_id":"Wankhede","venue_country":"India","series_id":"S_T20I25","series_name":"T20I Series 2025","city":"Mumbai"},
+        {"match_id":"M2025-02-08-IND-NZ-T20I","description":"T20I: IND vs NZ","match_type":"T20I","status":"Completed","start_time":"2025-02-08 19:00:00","team1":"India","team2":"New Zealand","venue":"Narendra Modi Stadium, Ahmedabad","winner":"India","victory_margin":"2","victory_type":"wickets","toss_winner":"New Zealand","toss_decision":"bat","venue_id":"NAM","venue_country":"India","series_id":"S_T20I25","series_name":"T20I Series 2025","city":"Ahmedabad"},
+        {"match_id":"M2025-07-14-IND-SL-T20I","description":"T20I: IND vs SL","match_type":"T20I","status":"Completed","start_time":"2025-07-14 19:30:00","team1":"India","team2":"Sri Lanka","venue":"Eden Gardens, Kolkata","winner":"India","victory_margin":"2","victory_type":"wickets","toss_winner":"India","toss_decision":"field","venue_id":"Eden","venue_country":"India","series_id":"S_T20I25","series_name":"T20I Series 2025","city":"Kolkata"},
+        
+        # Test matches
         {"match_id":"M2024-01-20-IND-ENG-TEST","description":"Test: IND vs ENG","match_type":"Test","status":"Completed","start_time":"2024-01-20 10:00:00","team1":"India","team2":"England","venue":"Eden Gardens, Kolkata","winner":"India","victory_margin":"120","victory_type":"runs","toss_winner":"England","toss_decision":"bat","venue_id":"Eden","venue_country":"India","series_id":"S_BGT24","series_name":"Border-Gavaskar Trophy 2024","city":"Kolkata"},
         {"match_id":"M2024-04-10-IND-ENG-TEST","description":"Test: IND vs ENG","match_type":"Test","status":"Completed","start_time":"2024-04-10 10:00:00","team1":"India","team2":"England","venue":"Eden Gardens, Kolkata","winner":"England","victory_margin":"5","victory_type":"wickets","toss_winner":"India","toss_decision":"bat","venue_id":"Eden","venue_country":"India","series_id":"S_BGT24","series_name":"Border-Gavaskar Trophy 2024","city":"Kolkata"},
+        {"match_id":"M2023-03-03-IND-AUS-TEST","description":"Test: IND vs AUS","match_type":"Test","status":"Completed","start_time":"2023-03-03 10:00:00","team1":"India","team2":"Australia","venue":"Melbourne Cricket Ground","winner":"Australia","victory_margin":"80","victory_type":"runs","toss_winner":"Australia","toss_decision":"bat","venue_id":"MCG","venue_country":"Australia","series_id":"S_BGT24","series_name":"Border-Gavaskar Trophy 2024","city":"Melbourne"},
+        
+        # Close matches (for Q15 - performers in close matches)
+        {"match_id":"M2024-09-20-IND-PAK-ODI","description":"ODI: IND vs PAK (close)","match_type":"ODI","status":"Completed","start_time":"2024-09-20 13:00:00","team1":"India","team2":"Pakistan","venue":"Eden Gardens, Kolkata","winner":"India","victory_margin":"5","victory_type":"runs","toss_winner":"Pakistan","toss_decision":"bat","venue_id":"Eden","venue_country":"India","series_id":None,"series_name":None,"city":"Kolkata"},
+        {"match_id":"M2024-09-25-IND-PAK-ODI","description":"ODI: IND vs PAK (close)","match_type":"ODI","status":"Completed","start_time":"2024-09-25 13:00:00","team1":"India","team2":"Pakistan","venue":"Wankhede Stadium, Mumbai","winner":"Pakistan","victory_margin":"3","victory_type":"wickets","toss_winner":"India","toss_decision":"bat","venue_id":"Wankhede","venue_country":"India","series_id":None,"series_name":None,"city":"Mumbai"},
+        {"match_id":"M2025-05-22-IND-SA-ODI","description":"ODI: IND vs SA","match_type":"ODI","status":"Completed","start_time":"2025-05-22 13:00:00","team1":"India","team2":"South Africa","venue":"Wankhede Stadium, Mumbai","winner":"South Africa","victory_margin":"8","victory_type":"runs","toss_winner":"India","toss_decision":"bat","venue_id":"Wankhede","venue_country":"India","series_id":None,"series_name":None,"city":"Mumbai"},
+        {"match_id":"M2025-06-10-IND-SA-ODI","description":"ODI: IND vs SA","match_type":"ODI","status":"Completed","start_time":"2025-06-10 13:00:00","team1":"India","team2":"South Africa","venue":"Narendra Modi Stadium, Ahmedabad","winner":"India","victory_margin":"2","victory_type":"wickets","toss_winner":"South Africa","toss_decision":"bat","venue_id":"NAM","venue_country":"India","series_id":None,"series_name":None,"city":"Ahmedabad"},
+        
+        # More historical ODI data (for trends and format comparison)
+        {"match_id":"M2023-05-10-IND-AUS-ODI2","description":"ODI: IND vs AUS","match_type":"ODI","status":"Completed","start_time":"2023-05-10 14:00:00","team1":"India","team2":"Australia","venue":"Sydney Cricket Ground","winner":"India","victory_margin":"25","victory_type":"runs","toss_winner":"India","toss_decision":"bat","venue_id":"SCG","venue_country":"Australia","series_id":None,"series_name":None,"city":"Sydney"},
+        {"match_id":"M2023-07-22-IND-SA-ODI","description":"ODI: IND vs SA","match_type":"ODI","status":"Completed","start_time":"2023-07-22 13:00:00","team1":"India","team2":"South Africa","venue":"Eden Gardens, Kolkata","winner":"India","victory_margin":"45","victory_type":"runs","toss_winner":"South Africa","toss_decision":"bat","venue_id":"Eden","venue_country":"India","series_id":None,"series_name":None,"city":"Kolkata"},
+        {"match_id":"M2024-06-15-IND-ENG-ODI","description":"ODI: IND vs ENG","match_type":"ODI","status":"Completed","start_time":"2024-06-15 14:00:00","team1":"India","team2":"England","venue":"Lord's, London","winner":"India","victory_margin":"32","victory_type":"runs","toss_winner":"England","toss_decision":"bat","venue_id":"Lords","venue_country":"England","series_id":None,"series_name":None,"city":"London"},
     ]
     _insert_many_tolerant(cur, "matches", matches)
 
-    # batting
+    # Batting innings (comprehensive for all queries: trends, partnerships, formats)
     def sr(runs, balls):
         return None if not balls else round(100.0 * runs / balls, 2)
 
     batting = [
-        {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":2,"runs":52,"balls":58,"strike_rate":sr(52,58)},
-        {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":85,"balls":98,"strike_rate":sr(85,98)},
-        {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"team":"Australia","player_name":"Steve Smith","player_id":None,"position":3,"runs":66,"balls":82,"strike_rate":sr(66,82)},
+        # M2025-IND-AUS-ODI-01
+        {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":52,"balls":58,"strike_rate":sr(52,58)},
+        {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":85,"balls":98,"strike_rate":sr(85,98)},
+        {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"team":"India","player_name":"KL Rahul","player_id":None,"position":3,"runs":42,"balls":50,"strike_rate":sr(42,50)},
         {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"team":"Australia","player_name":"David Warner","player_id":None,"position":1,"runs":38,"balls":45,"strike_rate":sr(38,45)},
-
-        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":2,"runs":23,"balls":34,"strike_rate":sr(23,34)},
-        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":55,"balls":70,"strike_rate":sr(55,70)},
-        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"team":"Australia","player_name":"Steve Smith","player_id":None,"position":3,"runs":102,"balls":115,"strike_rate":sr(102,115)},
+        {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"team":"Australia","player_name":"Steve Smith","player_id":None,"position":2,"runs":66,"balls":82,"strike_rate":sr(66,82)},
+        
+        # M2025-IND-AUS-ODI-02
+        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":23,"balls":34,"strike_rate":sr(23,34)},
+        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":55,"balls":70,"strike_rate":sr(55,70)},
         {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"team":"Australia","player_name":"David Warner","player_id":None,"position":1,"runs":41,"balls":52,"strike_rate":sr(41,52)},
-
-        {"match_id":"M2024-IND-AUS-T20I-01","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":2,"runs":34,"balls":24,"strike_rate":sr(34,24)},
-        {"match_id":"M2024-IND-AUS-T20I-01","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":72,"balls":48,"strike_rate":sr(72,48)},
-
-        {"match_id":"M2023-IND-AUS-ODI-01","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":2,"runs":60,"balls":72,"strike_rate":sr(60,72)},
-        {"match_id":"M2023-IND-AUS-ODI-01","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":103,"balls":95,"strike_rate":sr(103,95)},
-
-        {"match_id":"M2023-IND-AUS-TEST-01","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":44,"balls":95,"strike_rate":sr(44,95)},
-        {"match_id":"M2023-IND-AUS-TEST-01","innings_no":1,"team":"Australia","player_name":"Steve Smith","player_id":None,"position":3,"runs":55,"balls":110,"strike_rate":sr(55,110)},
-
+        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"team":"Australia","player_name":"Steve Smith","player_id":None,"position":2,"runs":102,"balls":115,"strike_rate":sr(102,115)},
+        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"team":"Australia","player_name":"Travis Head","player_id":None,"position":3,"runs":35,"balls":36,"strike_rate":sr(35,36)},
+        
+        # M2025-IND-AUS-ODI-03
+        {"match_id":"M2025-IND-AUS-ODI-03","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":68,"balls":75,"strike_rate":sr(68,75)},
+        {"match_id":"M2025-IND-AUS-ODI-03","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":91,"balls":88,"strike_rate":sr(91,88)},
+        {"match_id":"M2025-IND-AUS-ODI-03","innings_no":1,"team":"Australia","player_name":"David Warner","player_id":None,"position":1,"runs":45,"balls":48,"strike_rate":sr(45,48)},
+        
+        # Historic matches
+        {"match_id":"M2024-03-15-IND-AUS-ODI","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":58,"balls":70,"strike_rate":sr(58,70)},
+        {"match_id":"M2024-03-15-IND-AUS-ODI","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":72,"balls":85,"strike_rate":sr(72,85)},
+        {"match_id":"M2024-03-15-IND-AUS-ODI","innings_no":1,"team":"Australia","player_name":"Steve Smith","player_id":None,"position":3,"runs":95,"balls":105,"strike_rate":sr(95,105)},
+        
+        {"match_id":"M2023-10-15-IND-AUS-ODI","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":60,"balls":72,"strike_rate":sr(60,72)},
+        {"match_id":"M2023-10-15-IND-AUS-ODI","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":103,"balls":95,"strike_rate":sr(103,95)},
+        
+        # T20Is
+        {"match_id":"M2024-06-12-IND-AUS-T20I","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":34,"balls":24,"strike_rate":sr(34,24)},
+        {"match_id":"M2024-06-12-IND-AUS-T20I","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":72,"balls":48,"strike_rate":sr(72,48)},
+        
+        {"match_id":"M2024-11-30-IND-PAK-T20I","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":28,"balls":18,"strike_rate":sr(28,18)},
+        {"match_id":"M2024-11-30-IND-PAK-T20I","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":30,"balls":22,"strike_rate":sr(30,22)},
+        {"match_id":"M2024-11-30-IND-PAK-T20I","innings_no":1,"team":"Pakistan","player_name":"Rashid Khan","player_id":None,"position":5,"runs":25,"balls":15,"strike_rate":sr(25,15)},
+        
+        {"match_id":"M2025-02-05-IND-NZ-T20I","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":28,"balls":18,"strike_rate":sr(28,18)},
+        {"match_id":"M2025-02-05-IND-NZ-T20I","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":52,"balls":36,"strike_rate":sr(52,36)},
+        
+        {"match_id":"M2025-02-08-IND-NZ-T20I","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":41,"balls":28,"strike_rate":sr(41,28)},
+        {"match_id":"M2025-02-08-IND-NZ-T20I","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":38,"balls":30,"strike_rate":sr(38,30)},
+        
+        {"match_id":"M2025-07-14-IND-SL-T20I","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":35,"balls":22,"strike_rate":sr(35,22)},
+        {"match_id":"M2025-07-14-IND-SL-T20I","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":41,"balls":28,"strike_rate":sr(41,28)},
+        
+        # Test matches
+        {"match_id":"M2024-01-20-IND-ENG-TEST","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":48,"balls":105,"strike_rate":sr(48,105)},
+        {"match_id":"M2024-01-20-IND-ENG-TEST","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":120,"balls":185,"strike_rate":sr(120,185)},
+        {"match_id":"M2024-01-20-IND-ENG-TEST","innings_no":1,"team":"England","player_name":"Joe Root","player_id":None,"position":3,"runs":85,"balls":175,"strike_rate":sr(85,175)},
+        
+        {"match_id":"M2024-04-10-IND-ENG-TEST","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":52,"balls":110,"strike_rate":sr(52,110)},
+        {"match_id":"M2024-04-10-IND-ENG-TEST","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":2,"runs":60,"balls":120,"strike_rate":sr(60,120)},
+        
+        {"match_id":"M2023-03-03-IND-AUS-TEST","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":44,"balls":95,"strike_rate":sr(44,95)},
+        {"match_id":"M2023-03-03-IND-AUS-TEST","innings_no":1,"team":"Australia","player_name":"Steve Smith","player_id":None,"position":3,"runs":55,"balls":110,"strike_rate":sr(55,110)},
+        
+        # Close matches
         {"match_id":"M2024-09-20-IND-PAK-ODI","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":88,"balls":104,"strike_rate":sr(88,104)},
-        {"match_id":"M2024-11-30-IND-PAK-T20I","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":30,"balls":22,"strike_rate":sr(30,22)},
-        {"match_id":"M2025-02-05-IND-NZ-T20I","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":52,"balls":36,"strike_rate":sr(52,36)},
+        {"match_id":"M2024-09-20-IND-PAK-ODI","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":55,"balls":61,"strike_rate":sr(55,61)},
+        
+        {"match_id":"M2024-09-25-IND-PAK-ODI","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":75,"balls":92,"strike_rate":sr(75,92)},
+        {"match_id":"M2024-09-25-IND-PAK-ODI","innings_no":1,"team":"Pakistan","player_name":"Rashid Khan","player_id":None,"position":5,"runs":62,"balls":48,"strike_rate":sr(62,48)},
+        
         {"match_id":"M2025-05-22-IND-SA-ODI","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":76,"balls":89,"strike_rate":sr(76,89)},
-        {"match_id":"M2025-07-14-IND-SL-T20I","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":41,"balls":28,"strike_rate":sr(41,28)},
-
-        {"match_id":"M2024-01-20-IND-ENG-TEST","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":120,"balls":185,"strike_rate":sr(120,185)},
-        {"match_id":"M2024-04-10-IND-ENG-TEST","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":60,"balls":120,"strike_rate":sr(60,120)},
-        {"match_id":"M2024-01-20-IND-ENG-TEST","innings_no":1,"team":"England","player_name":"Joe Root","player_id":None,"position":4,"runs":85,"balls":175,"strike_rate":sr(85,175)},
-
-        {"match_id":"M2025-05-22-IND-SA-ODI","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":2,"runs":58,"balls":66,"strike_rate":sr(58,66)},
-        {"match_id":"M2024-09-20-IND-PAK-ODI","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":2,"runs":55,"balls":61,"strike_rate":sr(55,61)},
-        {"match_id":"M2025-07-14-IND-SL-T20I","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":2,"runs":35,"balls":22,"strike_rate":sr(35,22)},
-        {"match_id":"M2025-02-05-IND-NZ-T20I","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":2,"runs":28,"balls":18,"strike_rate":sr(28,18)},
+        {"match_id":"M2025-05-22-IND-SA-ODI","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":58,"balls":66,"strike_rate":sr(58,66)},
+        
+        {"match_id":"M2025-06-10-IND-SA-ODI","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":81,"balls":99,"strike_rate":sr(81,99)},
+        {"match_id":"M2025-06-10-IND-SA-ODI","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":40,"balls":50,"strike_rate":sr(40,50)},
+        
+        # More history for trends (Q16, Q19, Q25)
+        {"match_id":"M2023-05-10-IND-AUS-ODI2","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":92,"balls":100,"strike_rate":sr(92,100)},
+        {"match_id":"M2023-05-10-IND-AUS-ODI2","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":65,"balls":72,"strike_rate":sr(65,72)},
+        
+        {"match_id":"M2023-07-22-IND-SA-ODI","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":108,"balls":118,"strike_rate":sr(108,118)},
+        {"match_id":"M2023-07-22-IND-SA-ODI","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":71,"balls":78,"strike_rate":sr(71,78)},
+        
+        {"match_id":"M2024-06-15-IND-ENG-ODI","innings_no":1,"team":"India","player_name":"Virat Kohli","player_id":None,"position":3,"runs":95,"balls":101,"strike_rate":sr(95,101)},
+        {"match_id":"M2024-06-15-IND-ENG-ODI","innings_no":1,"team":"India","player_name":"Rohit Sharma","player_id":None,"position":1,"runs":62,"balls":70,"strike_rate":sr(62,70)},
     ]
     _insert_many_tolerant(cur, "batting_innings", batting)
 
-    # bowling
+    # Bowling spells (comprehensive for economical bowlers, venues, wickets)
     bowls = [
+        # M2025-IND-AUS-ODI-01
         {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":45,"wickets":2,"economy":4.50},
-        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":9.0,"balls":54,"runs":40,"wickets":1,"economy":4.44},
-        {"match_id":"M2024-09-20-IND-PAK-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":38,"wickets":3,"economy":3.80},
-        {"match_id":"M2025-05-22-IND-SA-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":52,"wickets":1,"economy":5.20},
-
+        {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"bowler_name":"Bhuvneshwar Kumar","bowler_id":None,"overs":9.0,"balls":54,"runs":42,"wickets":1,"economy":4.67},
         {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"bowler_name":"Mitchell Starc","bowler_id":None,"overs":10.0,"balls":60,"runs":50,"wickets":2,"economy":5.00},
+        {"match_id":"M2025-IND-AUS-ODI-01","innings_no":1,"bowler_name":"Josh Hazlewood","bowler_id":None,"overs":9.0,"balls":54,"runs":38,"wickets":1,"economy":4.22},
+        
+        # M2025-IND-AUS-ODI-02
+        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":9.0,"balls":54,"runs":40,"wickets":1,"economy":4.44},
+        {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"bowler_name":"Mohammed Siraj","bowler_id":None,"overs":8.0,"balls":48,"runs":35,"wickets":0,"economy":4.38},
         {"match_id":"M2025-IND-AUS-ODI-02","innings_no":1,"bowler_name":"Mitchell Starc","bowler_id":None,"overs":10.0,"balls":60,"runs":44,"wickets":2,"economy":4.40},
+        
+        # M2025-IND-AUS-ODI-03
+        {"match_id":"M2025-IND-AUS-ODI-03","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":38,"wickets":2,"economy":3.80},
+        {"match_id":"M2025-IND-AUS-ODI-03","innings_no":1,"bowler_name":"Bhuvneshwar Kumar","bowler_id":None,"overs":10.0,"balls":60,"runs":42,"wickets":1,"economy":4.20},
+        
+        # M2024-03-15-IND-AUS-ODI
+        {"match_id":"M2024-03-15-IND-AUS-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":48,"wickets":2,"economy":4.80},
+        {"match_id":"M2024-03-15-IND-AUS-ODI","innings_no":1,"bowler_name":"Mitchell Starc","bowler_id":None,"overs":9.0,"balls":54,"runs":52,"wickets":2,"economy":5.78},
+        
+        # M2023-10-15-IND-AUS-ODI
+        {"match_id":"M2023-10-15-IND-AUS-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":42,"wickets":2,"economy":4.20},
+        {"match_id":"M2023-10-15-IND-AUS-ODI","innings_no":1,"bowler_name":"Mohammed Siraj","bowler_id":None,"overs":8.0,"balls":48,"runs":36,"wickets":1,"economy":4.50},
+        
+        # T20Is
+        {"match_id":"M2024-06-12-IND-AUS-T20I","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":4.0,"balls":24,"runs":18,"wickets":2,"economy":4.50},
+        {"match_id":"M2024-06-12-IND-AUS-T20I","innings_no":1,"bowler_name":"Mohammed Siraj","bowler_id":None,"overs":4.0,"balls":24,"runs":22,"wickets":1,"economy":5.50},
+        
+        {"match_id":"M2024-11-30-IND-PAK-T20I","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":3.0,"balls":18,"runs":15,"wickets":1,"economy":5.00},
         {"match_id":"M2024-11-30-IND-PAK-T20I","innings_no":1,"bowler_name":"Rashid Khan","bowler_id":None,"overs":4.0,"balls":24,"runs":22,"wickets":1,"economy":5.50},
+        
+        {"match_id":"M2025-02-05-IND-NZ-T20I","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":4.0,"balls":24,"runs":20,"wickets":2,"economy":5.00},
+        {"match_id":"M2025-02-05-IND-NZ-T20I","innings_no":1,"bowler_name":"Mohammed Siraj","bowler_id":None,"overs":3.0,"balls":18,"runs":18,"wickets":1,"economy":6.00},
+        
+        {"match_id":"M2025-02-08-IND-NZ-T20I","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":4.0,"balls":24,"runs":16,"wickets":1,"economy":4.00},
+        
+        {"match_id":"M2025-07-14-IND-SL-T20I","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":3.5,"balls":23,"runs":19,"wickets":2,"economy":5.14},
+        
+        # Test matches
+        {"match_id":"M2024-01-20-IND-ENG-TEST","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":18.0,"balls":108,"runs":72,"wickets":3,"economy":4.00},
+        {"match_id":"M2024-01-20-IND-ENG-TEST","innings_no":1,"bowler_name":"Mohammed Siraj","bowler_id":None,"overs":15.0,"balls":90,"runs":65,"wickets":2,"economy":4.33},
+        
+        {"match_id":"M2024-04-10-IND-ENG-TEST","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":20.0,"balls":120,"runs":85,"wickets":4,"economy":4.25},
+        
+        {"match_id":"M2023-03-03-IND-AUS-TEST","innings_no":1,"bowler_name":"Mitchell Starc","bowler_id":None,"overs":22.0,"balls":132,"runs":95,"wickets":3,"economy":4.32},
+        {"match_id":"M2023-03-03-IND-AUS-TEST","innings_no":1,"bowler_name":"Josh Hazlewood","bowler_id":None,"overs":20.0,"balls":120,"runs":80,"wickets":2,"economy":4.00},
+        
+        # Close matches
+        {"match_id":"M2024-09-20-IND-PAK-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":38,"wickets":3,"economy":3.80},
+        
+        {"match_id":"M2024-09-25-IND-PAK-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":41,"wickets":2,"economy":4.10},
+        {"match_id":"M2024-09-25-IND-PAK-ODI","innings_no":1,"bowler_name":"Bhuvneshwar Kumar","bowler_id":None,"overs":9.0,"balls":54,"runs":39,"wickets":1,"economy":4.33},
+        
+        {"match_id":"M2025-05-22-IND-SA-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":52,"wickets":1,"economy":5.20},
+        
+        {"match_id":"M2025-06-10-IND-SA-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":39,"wickets":2,"economy":3.90},
+        
+        # More history
+        {"match_id":"M2023-05-10-IND-AUS-ODI2","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":45,"wickets":2,"economy":4.50},
+        
+        {"match_id":"M2023-07-22-IND-SA-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":38,"wickets":2,"economy":3.80},
+        {"match_id":"M2023-07-22-IND-SA-ODI","innings_no":1,"bowler_name":"Mohammed Siraj","bowler_id":None,"overs":9.0,"balls":54,"runs":40,"wickets":1,"economy":4.44},
+        
+        {"match_id":"M2024-06-15-IND-ENG-ODI","innings_no":1,"bowler_name":"Jasprit Bumrah","bowler_id":None,"overs":10.0,"balls":60,"runs":40,"wickets":3,"economy":4.00},
+        {"match_id":"M2024-06-15-IND-ENG-ODI","innings_no":1,"bowler_name":"Bhuvneshwar Kumar","bowler_id":None,"overs":8.0,"balls":48,"runs":36,"wickets":1,"economy":4.50},
     ]
     _insert_many_tolerant(cur, "bowling_spells", bowls)
 

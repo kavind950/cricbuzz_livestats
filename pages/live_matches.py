@@ -9,11 +9,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from dotenv import load_dotenv, find_dotenv
 
-# =============================================================================
-# Configuration — .env must contain:
-# RAPIDAPI_KEY=xxxxxxxxxxxxxxxx
-# RAPIDAPI_HOST=cricbuzz-cricket.p.rapidapi.com
-# =============================================================================
+
 load_dotenv(find_dotenv(), override=False)
 DEFAULT_HOST = "cricbuzz-cricket.p.rapidapi.com"
 
@@ -368,6 +364,8 @@ def main():
 
     if code == 200:
         render_matches_by_type(data, headers, base_url)
+    elif code == 204:
+        st.info(f"No {match_type} matches available at this time.")
     elif code == 429:
         st.error("API rate limit exceeded (429).")
     elif code == 401:

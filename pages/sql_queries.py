@@ -28,6 +28,7 @@ def _query_df(sql: str, params: Dict | None = None) -> pd.DataFrame:
     - Ensures database schema exists before execution
     - Catches and displays SQL errors gracefully
     - Returns empty DataFrame on error to prevent app crashes
+    
     - Supports parameterized queries to prevent SQL injection
     
     Args:
@@ -50,7 +51,7 @@ def show_sql_analytics():
     st.caption("All queries run against the local SQLite DB created by `utils/db_connection.py`.")
 
     # one-click demo data (safe to click multiple times)
-    if st.button("📦 Load tiny demo dataset (safe & idempotent)"):
+    if st.button("📦 Click to load data"):
         try:
             seed_demo_data_if_empty(force=True)
             st.success("Demo data inserted.")
